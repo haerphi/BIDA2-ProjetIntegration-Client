@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authService } from "../../api/auth.service";
 import { isAxiosError } from "axios";
+import GoogleButton from "./components/google-button";
 
 const loginSchema = z.object({
   affiliation_number: z.string().min(1, "Affiliate number is required"),
@@ -82,6 +83,8 @@ export default function AuthPage() {
           {isSubmitting ? "Logging in..." : "Login"}
         </button>
       </form>
+
+      <GoogleButton />
     </>
   );
 }
