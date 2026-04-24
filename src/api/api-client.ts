@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { store } from '../store/store';
 
 // Get base URL from env if available, otherwise fallback
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -13,10 +14,10 @@ const apiClient = axios.create({
 // Configure interceptors if needed (e.g. for injecting JWT tokens)
 apiClient.interceptors.request.use(
   (config) => {
-    // const token = localStorage.getItem('token');
-    // if (token && config.headers) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    const token = store.getState().auth.token;
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {

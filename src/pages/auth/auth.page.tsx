@@ -4,6 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { authService } from "../../api/auth.service";
 import { isAxiosError } from "axios";
 import GoogleButton from "./components/google-button";
+import { useAppDispatch } from "../../store/hooks";
+import { setCredentials } from "../../store/slices/auth.slice";
+import { useNavigate } from "react-router-dom";
 
 const loginSchema = z.object({
   affiliation_number: z.string().min(1, "Affiliate number is required"),
@@ -13,6 +16,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function AuthPage() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -31,7 +37,10 @@ export default function AuthPage() {
     try {
       const response = await authService.login(data);
       console.log("Login successful:", response);
-      // Handle valid login, e.g. store token and redirect
+      if (response.token) {
+        dispatch(setCredentials({ token: response.token, user: response.user }));
+        navigate("/"); // Redirect to home or protected page after login
+      }
     } catch (error) {
       console.error("Login failed:", error);
       if (isAxiosError(error) && error.response) {
