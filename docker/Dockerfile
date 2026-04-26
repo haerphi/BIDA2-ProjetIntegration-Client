@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:24-alpine
 
 # Set working directory
 WORKDIR /app
@@ -14,4 +14,4 @@ COPY . .
 EXPOSE 5173
 
 # Default development command
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD npm i && npm run dev -- --host 0.0.0.0
