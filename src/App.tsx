@@ -1,7 +1,7 @@
-import { useRoutes } from 'react-router-dom'
-import './App.css'
-import NavBar from './layout/nav-bar/nav-bar'
-import appRoutes from './pages/app.routes'
+import { useRoutes } from 'react-router-dom';
+import './App.css';
+import NavBar from './layout/nav-bar/nav-bar';
+import appRoutes from './pages/app.routes';
 
 function App() {
   const routes = useRoutes(appRoutes);
@@ -9,11 +9,9 @@ function App() {
   return (
     <>
       <NavBar />
-      <main>
-        {routes}
-      </main>
+      <main>{routes}</main>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

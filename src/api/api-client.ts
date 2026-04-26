@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 apiClient.interceptors.response.use(
@@ -30,7 +30,7 @@ apiClient.interceptors.response.use(
   (error) => {
     // Globally handle errors here (e.g. 401 Unauthorized)
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;

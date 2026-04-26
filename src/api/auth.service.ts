@@ -1,4 +1,4 @@
-import apiClient from "./api-client";
+import apiClient from './api-client';
 
 export interface LoginRequest {
   affiliation_number: string;
@@ -14,10 +14,7 @@ export interface LoginResponse {
 export const authService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     // You may need to adapt the endpoint path to match your Django server login route
-    const response = await apiClient.post<LoginResponse>(
-      "/token/",
-      credentials,
-    );
+    const response = await apiClient.post<LoginResponse>('/token/', credentials);
     return response.data;
   },
 };
