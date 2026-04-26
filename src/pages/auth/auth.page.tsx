@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { authService } from '../../api/auth.service';
+import { authService, type LoginResponse } from '../../api/auth.service';
 import { isAxiosError } from 'axios';
 import GoogleButton from './components/google-button';
 import { useAppDispatch } from '../../store/hooks';
-import { setCredentials } from '../../store/slices/auth.slice';
+import { setCredentials, parseJwt } from '../../store/slices/auth.slice';
 import { useNavigate } from 'react-router-dom';
 
 const loginSchema = z.object({
@@ -37,10 +37,7 @@ export default function AuthPage() {
     try {
       const response = await authService.login(data);
       console.log('Login successful:', response);
-      if (response.token) {
-        dispatch(setCredentials({ token: response.token, user: response.user }));
-        navigate('/'); // Redirect to home or protected page after login
-      }
+      onLoginSuccess(response);
     } catch (error) {
       console.error('Login failed:', error);
       if (isAxiosError(error) && error.response) {
@@ -54,6 +51,19 @@ export default function AuthPage() {
           message: 'An unexpected error occurred.',
         });
       }
+    }
+  };
+
+  const onLoginSuccess = (response: LoginResponse) => {
+    console.log('Success');
+
+    dispatch(setCredentials({ token: response.access, refreshToken: response.refresh }));
+    const tokenPayload = parseJwt(response.access);
+    console.log('Token payload:', tokenPayload);
+    if (tokenPayload?.contribution_paid === false) {
+      navigate('/late-contribution');
+    } else {
+      navigate('/'); // Redirect to home ("/") or protected page after login
     }
   };
 
@@ -77,7 +87,7 @@ export default function AuthPage() {
         </button>
       </form>
 
-      <GoogleButton />
+      <GoogleButton handleSuccess={onLoginSuccess} />
     </>
   );
 }

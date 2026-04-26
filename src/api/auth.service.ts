@@ -6,14 +6,12 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  // Define expected response structure here
-  token?: string;
-  user?: any;
+  access: string;
+  refresh: string;
 }
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    // You may need to adapt the endpoint path to match your Django server login route
     const response = await apiClient.post<LoginResponse>('/token/', credentials);
     return response.data;
   },
