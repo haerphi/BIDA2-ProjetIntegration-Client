@@ -8,7 +8,9 @@ const MemberRoute = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!tokenPayload?.contribution_paid) {
+  console.log(tokenPayload?.groups.includes('admin'));
+
+  if (!tokenPayload?.contribution_paid && !tokenPayload?.groups.includes('admin')) {
     return <Navigate to="/contribution/pay" replace />;
   }
 

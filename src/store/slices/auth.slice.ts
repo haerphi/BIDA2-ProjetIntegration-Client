@@ -2,6 +2,8 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { jwtDecode } from 'jwt-decode';
 import type { Token } from '../../interfaces/api.interface';
+import type { RootState } from '../store';
+import { UserGroup } from '../../enums/user-groupe.enum';
 
 export interface AuthState {
   token: string | null;
@@ -46,5 +48,7 @@ export const authSlice = createSlice({
 });
 
 export const { setCredentials, logout } = authSlice.actions;
+
+export const selectIsAdmin = (state: RootState) => state.auth.tokenPayload?.groups.includes(UserGroup.ADMIN) ?? false;
 
 export default authSlice.reducer;

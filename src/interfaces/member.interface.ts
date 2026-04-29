@@ -1,0 +1,43 @@
+export interface Member {
+  id: number;
+  firstname: string;
+  lastname: string;
+  email: string;
+  street: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  phone: string;
+  birth_date: string;
+  gender: string;
+  affiliation_number: string;
+  ranking: string;
+  is_active: boolean;
+  role: string;
+  contribution_paid: boolean;
+  created_at: string;
+}
+
+export interface MemberListQueryParams {
+  affiliation_number?: string;
+
+  /** Format attendu : "YYYY-MM-DD" */
+  birth_date?: string;
+
+  country?: string;
+  email?: string;
+  first_name?: string;
+
+  /** Valeurs limitées par l'énumération de l'API */
+  gender?: 'male' | 'female' | 'other';
+
+  is_active?: boolean;
+  last_name?: string;
+
+  /** Champ utilisé pour le tri (ex: "first_name" ou "-first_name") */
+  ordering?: string;
+
+  phone?: string;
+  postal_code?: string;
+  ranking?: string;
+}

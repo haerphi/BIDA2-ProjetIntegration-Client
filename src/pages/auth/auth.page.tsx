@@ -55,16 +55,8 @@ export default function AuthPage() {
   };
 
   const onLoginSuccess = (response: LoginResponse) => {
-    console.log('Success');
-
     dispatch(setCredentials({ token: response.access }));
-    const tokenPayload = parseJwt(response.access);
-    console.log('Token payload:', tokenPayload);
-    if (tokenPayload?.contribution_paid === false) {
-      navigate('/contribution/pay');
-    } else {
-      navigate('/'); // Redirect to home ("/") or protected page after login
-    }
+    navigate('/');
   };
 
   return (
