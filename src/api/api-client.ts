@@ -10,6 +10,7 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Configure interceptors if needed (e.g. for injecting JWT tokens)
@@ -36,23 +37,17 @@ apiClient.interceptors.response.use(
     if (error.response?.data?.messages?.[0]?.message === 'Token is expired' && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = store.getState().auth.refreshToken;
-        if (!refreshToken) {
-          store.dispatch(logout());
-          return Promise.reject(error);
-        }
-
-        const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {
-          refresh: refreshToken,
-        });
+        const response = await axios.post(
+          `${API_BASE_URL}/token/refresh/`,
+          {},
+          { withCredentials: true }
+        );
 
         const newAccessToken = response.data.access;
-        const newRefreshToken = response.data.refresh || refreshToken;
 
         store.dispatch(
           setCredentials({
             token: newAccessToken,
-            refreshToken: newRefreshToken,
           }),
         );
 

@@ -57,7 +57,7 @@ export default function AuthPage() {
   const onLoginSuccess = (response: LoginResponse) => {
     console.log('Success');
 
-    dispatch(setCredentials({ token: response.access, refreshToken: response.refresh }));
+    dispatch(setCredentials({ token: response.access }));
     const tokenPayload = parseJwt(response.access);
     console.log('Token payload:', tokenPayload);
     if (tokenPayload?.contribution_paid === false) {
