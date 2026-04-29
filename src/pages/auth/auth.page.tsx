@@ -60,26 +60,71 @@ export default function AuthPage() {
   };
 
   return (
-    <>
-      <h1>Auth</h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="affiliation_number">Affiliation Number:</label>
-          <input id="affiliation_number" type="text" required {...register('affiliation_number')} />
-          {errors.affiliation_number && <p>{errors.affiliation_number.message}</p>}
+    <div className="d-flex align-items-center justify-content-center vh-100 bg-stone-100 p-3 w-100">
+      <div className="card shadow border-0 rounded-4 w-100 overflow-hidden" style={{ maxWidth: '400px' }}>
+        <div className="card-header border-0 text-center py-4 bg-emerald-900 text-white rounded-top-4">
+          <div
+            className="d-flex align-items-center justify-content-center bg-emerald-500 rounded-circle mx-auto mb-3"
+            style={{ width: '64px', height: '64px', fontSize: '24px' }}
+          >
+            📍
+          </div>
+          <h1 className="h3 mb-1">Tennis Club</h1>
+          <p className="mb-0 opacity-75">Espace Membre</p>
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input id="password" type="password" required {...register('password')} />
-          {errors.password && <p>{errors.password.message}</p>}
-        </div>
-        {errors.root?.serverError && <p style={{ color: 'red' }}>{errors.root.serverError.message}</p>}
-        <button type="submit" disabled={!isValid || isSubmitting}>
-          {isSubmitting ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+        <div className="card-body p-4 p-sm-5">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="mb-4">
+              <label htmlFor="affiliation_number" className="form-label fw-medium small">
+                Numéro d'affiliation AFT
+              </label>
+              <input
+                id="affiliation_number"
+                type="text"
+                className="form-control form-control-lg fs-6 custom-input"
+                placeholder="Ex: 1234567"
+                required
+                {...register('affiliation_number')}
+              />
+              <div className="form-text text-stone-500 small mt-1">7 chiffres, ne peut pas commencer par 0.</div>
+              {errors.affiliation_number && (
+                <div className="text-danger small mt-1">{errors.affiliation_number.message}</div>
+              )}
+            </div>
 
-      <GoogleButton handleSuccess={onLoginSuccess} />
-    </>
+            <div className="mb-4">
+              <label htmlFor="password" className="form-label fw-medium small">
+                Mot de passe
+              </label>
+              <input
+                id="password"
+                type="password"
+                className="form-control form-control-lg fs-6 custom-input"
+                placeholder="••••••••"
+                required
+                {...register('password')}
+              />
+              {errors.password && <div className="text-danger small mt-1">{errors.password.message}</div>}
+            </div>
+
+            {errors.root?.serverError && (
+              <div className="alert alert-danger small py-2 mb-3">{errors.root.serverError.message}</div>
+            )}
+
+            <button
+              type="submit"
+              className="btn btn-emerald-600 w-100 py-2 fw-semibold text-white rounded-3 mb-3"
+              disabled={!isValid || isSubmitting}
+            >
+              {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
+            </button>
+            <hr />
+            <div className="text-center mt-3">
+              <GoogleButton handleSuccess={onLoginSuccess} />
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 }

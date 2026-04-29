@@ -5,7 +5,7 @@ const NotConnectedRoute = () => {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/courts" replace />;
   }
 
   return <Outlet />;

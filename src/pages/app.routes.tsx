@@ -10,6 +10,7 @@ import MemberRoute from '../guards/member-route';
 import AdminRoute from '../guards/admin-route';
 import MemberListPage from './member/member-list.page';
 import NotConnectedRoute from '../guards/not-connected-route';
+import DashboardLayout from '../layout/dashboard-layout';
 
 const appRoutes: Array<RouteObject> = [
   {
@@ -24,55 +25,64 @@ const appRoutes: Array<RouteObject> = [
         path: '/auth',
         element: <AuthPage />,
       },
-    ],
-  },
-  {
-    /*
-        User connected but has not paid contribution
-    */
-    element: <ConnectedRoute />,
-    children: [
       {
-        path: '/contribution/pay',
-        element: <ContributionPayPage />,
-      },
-      {
-        path: '/contribution/success',
-        element: <ContributionSuccessPage />,
-      },
-      {
-        path: '/contribution/cancel',
-        element: <ContributionCancelPage />,
+        index: true,
+        element: <Navigate to="/auth" replace />,
       },
     ],
   },
   {
-    /*
-        User connected and has paid contribution
-    */
-    element: <MemberRoute />,
+    element: <DashboardLayout />,
     children: [
       {
-        path: '/',
-        element: <CourtListingPage />,
+        /*
+            User connected but has not paid contribution
+        */
+        element: <ConnectedRoute />,
+        children: [
+          {
+            path: '/contribution/pay',
+            element: <ContributionPayPage />,
+          },
+          {
+            path: '/contribution/success',
+            element: <ContributionSuccessPage />,
+          },
+          {
+            path: '/contribution/cancel',
+            element: <ContributionCancelPage />,
+          },
+        ],
       },
       {
-        path: '/courts',
-        element: <CourtListingPage />,
+        /*
+            User connected and has paid contribution
+        */
+        element: <MemberRoute />,
+        children: [
+          {
+            index: true,
+            element: <CourtListingPage />,
+          },
+          {
+            path: '/courts',
+            element: <CourtListingPage />,
+          },
+        ],
       },
-    ],
-  },
-  {
-    /*
-        Admin
-    */
-    element: <AdminRoute />,
-    children: [
       {
-        path: '/members',
-        element: <MemberListPage />,
+        /*
+            Admin
+        */
+        element: <AdminRoute />,
+        children: [
+          {
+            path: '/members',
+            element: <MemberListPage />,
+          },
+        ],
       },
-    ],
+    ]
   },
   {
     path: '*',
