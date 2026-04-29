@@ -61,7 +61,7 @@ export default function AuthPage() {
     const tokenPayload = parseJwt(response.access);
     console.log('Token payload:', tokenPayload);
     if (tokenPayload?.contribution_paid === false) {
-      navigate('/late-contribution');
+      navigate('/contribution/pay');
     } else {
       navigate('/'); // Redirect to home ("/") or protected page after login
     }

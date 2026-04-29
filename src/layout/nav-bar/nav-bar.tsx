@@ -1,18 +1,25 @@
 import { Link } from 'react-router-dom';
+import { useAppSelector } from '../../store/hooks';
 
 const NavBar = () => {
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
   return (
     <nav>
       <ul>
         <li>
           <Link to="/">Home</Link>
         </li>
-        <li>
-          <Link to="/auth">Auth</Link>
-        </li>
-        <li>
-          <Link to="/courts">Court Listing</Link>
-        </li>
+        {!isAuthenticated && (
+          <li>
+            <Link to="/auth">Login</Link>
+          </li>
+        )}
+        {isAuthenticated && (
+          <li>
+            <Link to="/courts">Court Listing</Link>
+          </li>
+        )}
       </ul>
     </nav>
   );
