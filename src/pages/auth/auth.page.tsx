@@ -16,7 +16,6 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function AuthPage() {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const {
@@ -35,9 +34,8 @@ export default function AuthPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const response = await authService.login(data);
-      console.log('Login successful:', response);
-      onLoginSuccess(response);
+      await authService.login(data);
+      onLoginSuccess();
     } catch (error) {
       console.error('Login failed:', error);
       if (isAxiosError(error) && error.response) {
@@ -54,8 +52,7 @@ export default function AuthPage() {
     }
   };
 
-  const onLoginSuccess = (response: LoginResponse) => {
-    dispatch(setCredentials({ token: response.access }));
+  const onLoginSuccess = () => {
     navigate('/');
   };
 

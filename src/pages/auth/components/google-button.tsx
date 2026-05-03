@@ -1,41 +1,45 @@
 import { GoogleOAuthProvider, GoogleLogin, type CredentialResponse } from '@react-oauth/google';
-import type { LoginResponse } from '../../../api/auth.service';
+import { authService, type LoginResponse } from '../../../api/auth.service';
+import { useState } from 'react';
+import { AxiosError } from 'axios';
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 function GoogleButton({ handleSuccess }: { handleSuccess: (response: LoginResponse) => void }) {
+  const [error, setError] = useState<string | null>(null);
+
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       // Send the token to your API for validation and user creation/login
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/token/google/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token: credentialResponse.credential }),
-      });
-
-      const data: LoginResponse = await response.json();
-      // Handle successful login (e.g., save JWT, redirect)
-      handleSuccess(data);
-    } catch (error) {
-      console.error(error);
+      const response = await authService.loginGoogle(credentialResponse.credential as string);
+      handleSuccess(response);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        setError(error.response?.data?.detail);
+      } else if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Une erreur inattendue s'est produite");
+      }
     }
   };
 
   return (
-    <GoogleOAuthProvider clientId={clientId}>
-      <div className="login-container">
-        <div className="google-login-button">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => {
-              console.log('Login Failed');
-            }}
-          />
+    <>
+      <GoogleOAuthProvider clientId={clientId}>
+        <div className="login-container">
+          <div className="google-login-button">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                console.log('Login Failed');
+              }}
+            />
+          </div>
         </div>
-      </div>
-    </GoogleOAuthProvider>
+      </GoogleOAuthProvider>
+      {error && <div className="text-danger small mt-1">{error}</div>}
+    </>
   );
 }
 

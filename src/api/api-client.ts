@@ -19,7 +19,6 @@ apiClient.interceptors.request.use(
     const token = store.getState().auth.token;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log(config.headers.Authorization);
     }
     return config;
   },
@@ -37,11 +36,7 @@ apiClient.interceptors.response.use(
     if (error.response?.data?.messages?.[0]?.message === 'Token is expired' && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const response = await axios.post(
-          `${API_BASE_URL}/token/refresh/`,
-          {},
-          { withCredentials: true }
-        );
+        const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {}, { withCredentials: true });
 
         const newAccessToken = response.data.access;
 

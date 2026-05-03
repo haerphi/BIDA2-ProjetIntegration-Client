@@ -1,16 +1,16 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
+import { selectIsMember } from '../store/slices/auth.slice';
 
 const MemberRoute = () => {
-  const { tokenPayload, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const isMember = useAppSelector(selectIsMember);
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
 
-  console.log(tokenPayload?.groups.includes('admin'));
-
-  if (!tokenPayload?.contribution_paid && !tokenPayload?.groups.includes('admin')) {
+  if (!isMember) {
     return <Navigate to="/contribution/pay" replace />;
   }
 

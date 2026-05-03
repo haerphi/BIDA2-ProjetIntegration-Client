@@ -49,6 +49,8 @@ export const authSlice = createSlice({
 
 export const { setCredentials, logout } = authSlice.actions;
 
+export const selectIsMember = (state: RootState) => state.auth.tokenPayload?.contribution_paid ?? false;
+
 export const selectIsAdmin = (state: RootState) => state.auth.tokenPayload?.groups.includes(UserGroup.ADMIN) ?? false;
 
 export default authSlice.reducer;
