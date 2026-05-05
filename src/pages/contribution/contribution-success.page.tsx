@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { contributionService } from '../../api/contribution.service';
 import { Link } from 'react-router-dom';
 import { authService } from '../../api/auth.service';
+import ContributionHeader from './components/contribution-header';
+import CustomIcon from '../../components/Common/Icons/custom-icon';
 
 export default function ContributionSuccessPage() {
   const [checkingPaid, setCheckingPaid] = useState<boolean>(true);
@@ -34,9 +36,7 @@ export default function ContributionSuccessPage() {
 
   return (
     <>
-      <header className="bg-white border-bottom border-stone-200 px-4 py-3 d-flex justify-content-between align-items-center">
-        <h2 className="h4 mb-0 fw-semibold text-stone-800">💳 Cotisation</h2>
-      </header>
+      <ContributionHeader />
 
       <div className="flex-grow-1 d-flex align-items-center justify-content-center p-4">
         <div className="card bg-white rounded-4 border-0 shadow-sm text-center w-100" style={{ maxWidth: '480px' }}>
@@ -54,7 +54,7 @@ export default function ContributionSuccessPage() {
                   className="d-flex align-items-center justify-content-center bg-emerald-100 text-emerald-600 rounded-circle mx-auto mb-4"
                   style={{ width: '72px', height: '72px', fontSize: '32px' }}
                 >
-                  ✅
+                  <CustomIcon iconName="CheckSquareFill" className="w-50 h-50 text-emerald-600" />
                 </div>
                 <h3 className="h4 fw-bold text-stone-800 mb-3">Cotisation confirmée !</h3>
                 <p className="text-stone-600 mb-4">
@@ -77,7 +77,7 @@ export default function ContributionSuccessPage() {
                     color: '#dc2626',
                   }}
                 >
-                  ❌
+                  <CustomIcon iconName="XCircleFill" className="w-50 h-50 text-red-600" />
                 </div>
                 <h3 className="h4 fw-bold text-stone-800 mb-3">Paiement non confirmé</h3>
                 <p className="text-stone-600 mb-4">

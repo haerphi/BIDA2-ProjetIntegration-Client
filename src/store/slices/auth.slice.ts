@@ -53,4 +53,6 @@ export const selectIsMember = (state: RootState) => state.auth.tokenPayload?.con
 
 export const selectIsAdmin = (state: RootState) => state.auth.tokenPayload?.groups.includes(UserGroup.ADMIN) ?? false;
 
+export const selectGroups = (state: RootState) => state.auth.tokenPayload?.groups ?? [];
+
 export default authSlice.reducer;

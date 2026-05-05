@@ -19,7 +19,12 @@ const DEFAULT_FILTERS: Filters = {
 
 export default function MemberListPage() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
@@ -31,8 +36,14 @@ export default function MemberListPage() {
 
     memberService
       .getAll()
-      .then((data) => {
-        if (!cancelled) setMembers(data);
+      .then((response) => {
+        if (!cancelled) {
+          setMembers(response.data);
+          setLimit(response.limit);
+          setTotal(response.total);
+          setPage(response.page);
+          setTotalPages(response.total_pages);
+        }
       })
       .catch(() => {
         if (!cancelled) setError('Impossible de charger la liste des membres. Veuillez réessayer.');

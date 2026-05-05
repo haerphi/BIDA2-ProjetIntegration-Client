@@ -11,6 +11,7 @@ import AdminRoute from '../guards/admin-route';
 import MemberListPage from './member/member-list.page';
 import NotConnectedRoute from '../guards/not-connected-route';
 import DashboardLayout from '../layout/dashboard-layout';
+import ContributionListPage from './contribution/contribution-list.page';
 
 const appRoutes: Array<RouteObject> = [
   {
@@ -80,9 +81,13 @@ const appRoutes: Array<RouteObject> = [
             path: '/members',
             element: <MemberListPage />,
           },
+          {
+            path: '/contributions',
+            element: <ContributionListPage />,
+          },
         ],
       },
-    ]
+    ],
   },
   {
     path: '*',

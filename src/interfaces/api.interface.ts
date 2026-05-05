@@ -8,3 +8,11 @@ export interface Token extends JwtPayload {
   contribution_paid: boolean;
   groups: UserGroupEnum[];
 }
+
+export interface ResponseList<T> {
+  data: T[];
+  limit: number;
+  total: number;
+  page: number;
+  total_pages: number;
+}

@@ -1,12 +1,11 @@
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { authService, type LoginResponse } from '../../api/auth.service';
+import { authService } from '../../api/auth.service';
 import { isAxiosError } from 'axios';
 import GoogleButton from './components/google-button';
-import { useAppDispatch } from '../../store/hooks';
-import { setCredentials, parseJwt } from '../../store/slices/auth.slice';
 import { useNavigate } from 'react-router-dom';
+import CustomIcon from '../../components/Common/Icons/custom-icon';
 
 const loginSchema = z.object({
   affiliation_number: z.string().min(1, 'Affiliate number is required'),
@@ -64,7 +63,7 @@ export default function AuthPage() {
             className="d-flex align-items-center justify-content-center bg-emerald-500 rounded-circle mx-auto mb-3"
             style={{ width: '64px', height: '64px', fontSize: '24px' }}
           >
-            📍
+            <CustomIcon iconName="tennis-ball" className="w-50 h-50" />
           </div>
           <h1 className="h3 mb-1">Tennis Club</h1>
           <p className="mb-0 opacity-75">Espace Membre</p>
