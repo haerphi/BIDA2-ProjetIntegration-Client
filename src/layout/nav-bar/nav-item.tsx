@@ -12,7 +12,7 @@ export default function NavItem({ to, label, icon, isChild = false }: NavItemPro
   if (!to) {
     return (
       <p className={`nav-item d-flex align-items-center mb-0 ${isChild ? 'ms-3' : ''}`}>
-        <CustomIcon iconName={icon} />
+        <CustomIcon iconName={icon} className="me-1" />
         <span>{label}</span>
       </p>
     );
@@ -27,7 +27,7 @@ export default function NavItem({ to, label, icon, isChild = false }: NavItemPro
       }
       style={({ isActive }) => (!isActive ? { color: '#d1fae5', transition: '0.2s' } : {})}
     >
-      <CustomIcon iconName={icon} className="me-3" />
+      <CustomIcon iconName={icon} className="me-1" />
       <span>{label}</span>
     </NavLink>
   );

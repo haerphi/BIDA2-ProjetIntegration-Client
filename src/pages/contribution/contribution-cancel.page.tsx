@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import ContributionHeader from './components/contribution-header';
 import CustomIcon from '../../components/Common/Icons/custom-icon';
+import Header from '../../layout/header';
 
 export default function ContributionCancelPage() {
   return (
     <>
-      <ContributionHeader />
+      <Header pageName="Paiement annulé" icon="CreditCard" />
 
       <div className="flex-grow-1 d-flex align-items-center justify-content-center p-4">
         <div className="card bg-white rounded-4 border-0 shadow-sm text-center w-100" style={{ maxWidth: '480px' }}>

@@ -41,3 +41,38 @@ export interface MemberListQueryParams {
   postal_code?: string;
   ranking?: string;
 }
+
+export interface MemberCreateData {
+  firstname: string;
+  lastname: string;
+  email: string;
+  street: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  phone: string;
+  birth_date: string;
+  gender: string;
+  affiliation_number: string;
+  ranking: string;
+  is_active: boolean;
+  role: string;
+  password?: string;
+}
+
+export interface MemberUpdateData {
+  firstname: string;
+  lastname: string;
+  email: string; // TODO enable only for admin (in front and back)
+  street: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  phone: string;
+  birth_date: string;
+  gender: string;
+  affiliation_number: string; // TODO enable only for admin (in front and back)
+  ranking: string;
+  is_active: boolean; // TODO enable only for admin (in front and back)
+  role: string; // TODO enable only for admin (in front and back)
+}

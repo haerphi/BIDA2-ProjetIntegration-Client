@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import { contributionService } from '../../api/contribution.service';
 import CustomIcon from '../../components/Common/Icons/custom-icon';
-import ContributionHeader from './components/contribution-header';
+import Header from '../../layout/header';
 
 export default function ContributionPayPage() {
   const { tokenPayload } = useAppSelector((state) => state.auth);
@@ -34,9 +34,11 @@ export default function ContributionPayPage() {
   }
 
   const handlePay = async () => {
+    setLoading(true);
     try {
       await contributionService.pay();
     } catch (err: unknown) {
+      setLoading(false);
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -47,7 +49,7 @@ export default function ContributionPayPage() {
 
   return (
     <>
-      <ContributionHeader />
+      <Header pageName="Payer ma cotisation" icon="CreditCard" />
 
       <div className="flex-grow-1 d-flex align-items-center justify-content-center p-4">
         <div className="card bg-white rounded-4 border-0 shadow-sm text-center w-100" style={{ maxWidth: '480px' }}>

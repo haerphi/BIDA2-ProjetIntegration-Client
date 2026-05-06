@@ -1,6 +1,10 @@
 import dayjs from 'dayjs';
 import type { ResponseList } from '../interfaces/api.interface';
-import type { ContributionList, ContributionListQueryParams } from '../interfaces/contribution.interface';
+import type {
+  ContributionList,
+  ContributionListQueryParams,
+  MemberContributionListQueryParams,
+} from '../interfaces/contribution.interface';
 import { delay } from '../utils/delay.utils';
 import apiClient from './api-client';
 
@@ -22,7 +26,7 @@ export const contributionService = {
     return response.data;
   },
   pay: async (): Promise<void> => {
-    const response = await apiClient.post<CheckoutSession>('/contributions/create-checkout-session');
+    const response = await apiClient.post<CheckoutSession>('/contributions/create-checkout-session/');
     window.location.href = response.data.checkout_url;
   },
   status: async (): Promise<ContributionStatus> => {
@@ -33,6 +37,23 @@ export const contributionService = {
   list: async (params: ContributionListQueryParams): Promise<ResponseList<ContributionList>> => {
     const response = await apiClient.get<ResponseList<ContributionList>>('/contributions/history', {
       params,
+    });
+
+    response.data.data.forEach((contribution) => {
+      contribution.created_at = dayjs(contribution.created_at);
+      contribution.updated_at = dayjs(contribution.updated_at);
+    });
+    return response.data;
+  },
+  updatePrice: async (amount: number): Promise<void> => {
+    await apiClient.patch('/contributions/amount/', { amount });
+  },
+  memberContributions: async (
+    member_id?: number,
+    query: MemberContributionListQueryParams = {},
+  ): Promise<ResponseList<ContributionList>> => {
+    const response = await apiClient.get<ResponseList<ContributionList>>(`/contributions/member/${member_id ?? ''}`, {
+      params: query,
     });
 
     response.data.data.forEach((contribution) => {

@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { contributionService } from '../../api/contribution.service';
 import { Link } from 'react-router-dom';
 import { authService } from '../../api/auth.service';
-import ContributionHeader from './components/contribution-header';
 import CustomIcon from '../../components/Common/Icons/custom-icon';
+import Header from '../../layout/header';
 
 export default function ContributionSuccessPage() {
   const [checkingPaid, setCheckingPaid] = useState<boolean>(true);
@@ -14,29 +14,32 @@ export default function ContributionSuccessPage() {
   useEffect(() => {
     setCheckingPaid(true);
     setTries(0);
-    checkContributionStatus();
   }, []);
 
+  useEffect(() => {
+    if (tries >= maxTries || !checkingPaid) {
+      setCheckingPaid(false);
+
+      return;
+    }
+    setTimeout(checkContributionStatus, 1000);
+  }, [tries]);
+
   const checkContributionStatus = async () => {
-    setTries((tries) => tries + 1);
     const status = await contributionService.status();
     setHasPaid(status.has_paid);
     if (status.has_paid) {
       await authService.refreshToken();
       setCheckingPaid(false);
       return;
-    }
-    if (tries < maxTries) {
-      setCheckingPaid(true);
-      setTimeout(checkContributionStatus, 1000);
     } else {
-      setCheckingPaid(false);
+      setTries((tries) => tries + 1);
     }
   };
 
   return (
     <>
-      <ContributionHeader />
+      <Header pageName="Vérification du paiement" icon="QuestionCircle" />
 
       <div className="flex-grow-1 d-flex align-items-center justify-content-center p-4">
         <div className="card bg-white rounded-4 border-0 shadow-sm text-center w-100" style={{ maxWidth: '480px' }}>

@@ -17,14 +17,14 @@ export default function NavBar({ className }: { className?: string }) {
   const isAdmin = useAppSelector(selectIsAdmin);
 
   const navItems: NavItem[] = [
-    { path: '/courts', label: 'Réservations', icon: 'Calendar2Fill', roles: [UserGroup.MEMBER] },
+    { path: '/courts', label: 'Réservations', icon: 'Calendar2Fill', roles: [UserGroup.PAID_MEMBER] },
     {
       label: 'Administration',
       icon: 'ShieldLockFill',
       roles: [UserGroup.ADMIN],
       children: [
         { path: '/members', label: 'Membres', icon: 'PersonFill' },
-        { path: '/contributions', label: 'Contributions', icon: 'CurrencyDollar' },
+        { path: '/contributions', label: 'Cotisations', icon: 'CurrencyDollar' },
       ],
     },
   ];
@@ -37,12 +37,18 @@ export default function NavBar({ className }: { className?: string }) {
     <nav className={className}>
       {navItems.filter(canShowItem).map((item) => {
         return (
-          <>
+          <div key={item.label}>
             <NavItem to={item.path} label={item.label} icon={item.icon} />
             {item.children?.filter(canShowItem).map((child) => (
-              <NavItem to={child.path} label={child.label} icon={child.icon} isChild={true} />
+              <NavItem
+                key={`${item.label}-${child.label}`}
+                to={child.path}
+                label={child.label}
+                icon={child.icon}
+                isChild={true}
+              />
             ))}
-          </>
+          </div>
         );
       })}
     </nav>

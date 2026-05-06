@@ -12,6 +12,8 @@ import MemberListPage from './member/member-list.page';
 import NotConnectedRoute from '../guards/not-connected-route';
 import DashboardLayout from '../layout/dashboard-layout';
 import ContributionListPage from './contribution/contribution-list.page';
+import MemberCreatePage from './member/member-create.page';
+import MemberProfile from './member/member-profile';
 
 const appRoutes: Array<RouteObject> = [
   {
@@ -69,6 +71,10 @@ const appRoutes: Array<RouteObject> = [
             path: '/courts',
             element: <CourtListingPage />,
           },
+          {
+            path: '/profile',
+            element: <MemberProfile />,
+          },
         ],
       },
       {
@@ -78,8 +84,16 @@ const appRoutes: Array<RouteObject> = [
         element: <AdminRoute />,
         children: [
           {
+            path: '/members/create',
+            element: <MemberCreatePage />,
+          },
+          {
             path: '/members',
             element: <MemberListPage />,
+          },
+          {
+            path: '/members/:id',
+            element: <MemberProfile />,
           },
           {
             path: '/contributions',

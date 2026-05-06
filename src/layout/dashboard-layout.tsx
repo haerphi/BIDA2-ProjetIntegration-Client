@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { authService } from '../api/auth.service';
 import CustomIcon from '../components/Common/Icons/custom-icon';
@@ -28,14 +28,14 @@ export default function DashboardLayout() {
         <NavBar className="sidebar-nav" />
 
         <div className="p-3 border-top border-emerald-800">
-          <p className="fw-bold mb-0">AFT: {tokenPayload?.affiliation_number}</p>
+          <p className="fw-bold mb-0">{tokenPayload?.first_name + ' ' + tokenPayload?.last_name}</p>
           <p className="small text-emerald-400 mb-3">{tokenPayload?.groups.join(', ') || 'Membre'}</p>
-          <a
-            href="#"
+          <Link
+            to="/profile"
             className="btn btn-emerald-600 bg-emerald-800 border-0 w-100 small hover-bg-emerald-600 transition"
           >
             <CustomIcon iconName="PersonFill" className="me-3" /> Mon profil
-          </a>
+          </Link>
           <a
             href="#"
             onClick={handleLogout}
@@ -46,7 +46,7 @@ export default function DashboardLayout() {
         </div>
       </aside>
 
-      <main className="flex-grow-1 d-flex flex-column overflow-y-auto bg-stone-100 text-stone-900">
+      <main className="flex-fill flex-column overflow-y-auto bg-stone-100 text-stone-900">
         <Outlet />
       </main>
     </div>

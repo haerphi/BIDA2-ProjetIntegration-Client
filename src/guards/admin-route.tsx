@@ -6,6 +6,8 @@ const AdminRoute = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const isAdmin = useAppSelector(selectIsAdmin);
 
+  console.log(isAuthenticated, isAdmin);
+
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }

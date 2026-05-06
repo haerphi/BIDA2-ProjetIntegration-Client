@@ -156,7 +156,7 @@ body {
   height: 32px;
 }
 .sidebar {
-  width: 260px;
+  min-width: 260px;
   background: var(--emerald-900);
   color: white;
   display: flex;

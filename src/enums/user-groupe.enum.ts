@@ -1,6 +1,6 @@
 export const UserGroup = {
   ADMIN: 'admin',
-  MEMBER: 'member',
+  PAID_MEMBER: 'paid_member',
   STAFF: 'staff',
 };
 

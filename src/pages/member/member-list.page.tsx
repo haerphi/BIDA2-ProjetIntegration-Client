@@ -1,32 +1,89 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Member } from '../../interfaces/member.interface';
 import { memberService } from '../../api/member.service';
-import { MemberRow } from './components/member-row';
+import { DataTable } from '../../components/Common/DataTable';
+import type { ColumnDef, FilterFieldDef } from '../../components/Common/DataTable';
+import { PaymentBadge } from './components/payment-badge';
+import { Link } from 'react-router-dom';
+import CustomIcon from '../../components/Common/Icons/custom-icon';
+import Header from '../../layout/header';
 
-type SortOrder = 'alpha-asc' | 'alpha-desc';
+/* ── Column definitions ───────────────────────────── */
+const columns: ColumnDef<Member>[] = [
+  {
+    key: 'name',
+    header: 'Nom & Prénom',
+    render: (m) => (
+      <div className="fw-medium text-stone-900">
+        {m.lastname}, {m.firstname}
+      </div>
+    ),
+  },
+  {
+    key: 'payment',
+    header: 'Statut de paiement',
+    render: (m) => <PaymentBadge paid={m.contribution_paid} />,
+  },
+  {
+    key: 'email',
+    header: 'Email',
+    render: (m) => <span className="text-stone-600">{m.email}</span>,
+  },
+  {
+    key: 'actions',
+    header: 'Actions',
+    className: 'text-center',
+    render: (m) => (
+      <Link
+        to={`/members/${m.id}`}
+        className="btn btn-sm btn-outline-success text-emerald-600 border-emerald-500 hover-bg-emerald-50 px-3 py-1 rounded-2"
+      >
+        <CustomIcon iconName="Pencil" className="me-2" />
+        Editer
+      </Link>
+    ),
+  },
+];
 
-interface Filters {
-  search: string;
-  ranking: string;
-  sort: SortOrder;
-}
+/* ── Filter definitions ───────────────────────────── */
+const filterFields: FilterFieldDef[] = [
+  { key: 'search', label: 'Recherche par nom', type: 'text', placeholder: 'Ex: Dupont', minWidth: '200px' },
+  {
+    key: 'ranking',
+    label: 'Classement',
+    type: 'select',
+    minWidth: '200px',
+    options: [
+      { value: 'all', label: 'Tous' },
+      { value: 'A', label: 'A' },
+      { value: 'B', label: 'Série B' },
+      { value: 'C', label: 'Série C' },
+      { value: 'NC', label: 'N.C' },
+    ],
+  },
+  {
+    key: 'sort',
+    label: 'Trier par',
+    type: 'select',
+    minWidth: '200px',
+    options: [
+      { value: 'alpha-asc', label: 'Ordre alphabétique (A-Z)' },
+      { value: 'alpha-desc', label: 'Ordre alphabétique (Z-A)' },
+    ],
+  },
+];
 
-const DEFAULT_FILTERS: Filters = {
-  search: '',
-  ranking: 'all',
-  sort: 'alpha-asc',
-};
-
+/* ── Page component ───────────────────────────────── */
 export default function MemberListPage() {
   const [members, setMembers] = useState<Member[]>([]);
-  const [limit, setLimit] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({
+    search: '',
+    ranking: 'all',
+    sort: 'alpha-asc',
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -37,13 +94,7 @@ export default function MemberListPage() {
     memberService
       .getAll()
       .then((response) => {
-        if (!cancelled) {
-          setMembers(response.data);
-          setLimit(response.limit);
-          setTotal(response.total);
-          setPage(response.page);
-          setTotalPages(response.total_pages);
-        }
+        if (!cancelled) setMembers(response.data);
       })
       .catch(() => {
         if (!cancelled) setError('Impossible de charger la liste des membres. Veuillez réessayer.');
@@ -57,142 +108,62 @@ export default function MemberListPage() {
     };
   }, []);
 
-  const handleFilterChange = useCallback(<K extends keyof Filters>(key: K, value: Filters[K]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const handleFilterChange = useCallback((key: string, value: string) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }));
   }, []);
 
   const filteredMembers = useMemo(() => {
     let result = [...members];
 
-    if (filters.search.trim()) {
-      const needle = filters.search.trim().toLowerCase();
+    const search = filterValues.search?.trim().toLowerCase();
+    if (search) {
       result = result.filter(
-        (m) => m.lastname.toLowerCase().includes(needle) || m.firstname.toLowerCase().includes(needle),
+        (m) => m.lastname.toLowerCase().includes(search) || m.firstname.toLowerCase().includes(search),
       );
     }
 
-    if (filters.ranking !== 'all') {
-      result = result.filter((m) => m.ranking === filters.ranking);
+    if (filterValues.ranking !== 'all') {
+      result = result.filter((m) => m.ranking === filterValues.ranking);
     }
 
     result.sort((a, b) => {
       const cmp = a.lastname.localeCompare(b.lastname, 'fr');
-      return filters.sort === 'alpha-asc' ? cmp : -cmp;
+      return filterValues.sort === 'alpha-asc' ? cmp : -cmp;
     });
 
     return result;
-  }, [members, filters]);
+  }, [members, filterValues]);
 
   return (
-    <section>
-      <header className="bg-white border-bottom border-stone-200 px-4 py-3">
-        <h2 className="h4 mb-1 fw-semibold text-stone-800">Annuaire des membres</h2>
-        <div className="text-stone-500 small">Trouvez des partenaires de jeu</div>
-      </header>
+    <>
+      <Header pageName="Liste des membres" icon="Person" />
 
-      <div className="p-4 overflow-auto mx-auto w-100" style={{ maxWidth: '1200px' }}>
-        {/* Filters */}
-        <div className="card bg-white rounded-3 border-stone-200 mb-4 shadow-sm border-0 p-4">
-          <div className="d-flex gap-3 align-items-end flex-wrap">
-            <div className="flex-grow-1" style={{ minWidth: '200px' }}>
-              <label htmlFor="filter-search" className="form-label fw-medium small mb-1">
-                Recherche par nom
-              </label>
-              <input
-                id="filter-search"
-                type="text"
-                className="form-control custom-input"
-                placeholder="Ex: Dupont"
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-              />
-            </div>
+      <div className="container mt-2">
+        <Link to="/members/create" className="btn btn-success float-end">
+          <CustomIcon iconName="PlusCircle" className="" /> Ajouter un membre
+        </Link>
+      </div>
 
-            <div className="flex-grow-1" style={{ minWidth: '200px' }}>
-              <label htmlFor="filter-ranking" className="form-label fw-medium small mb-1">
-                Classement
-              </label>
-              <select
-                id="filter-ranking"
-                className="form-select custom-select"
-                value={filters.ranking}
-                onChange={(e) => handleFilterChange('ranking', e.target.value)}
-              >
-                <option value="all">Tous</option>
-                <option value="A">A</option>
-                <option value="B">Série B</option>
-                <option value="C">Série C</option>
-                <option value="NC">N.C</option>
-              </select>
-            </div>
-
-            <div className="flex-grow-1" style={{ minWidth: '200px' }}>
-              <label htmlFor="filter-sort" className="form-label fw-medium small mb-1">
-                Trier par
-              </label>
-              <select
-                id="filter-sort"
-                className="form-select custom-select"
-                value={filters.sort}
-                onChange={(e) => handleFilterChange('sort', e.target.value as SortOrder)}
-              >
-                <option value="alpha-asc">Ordre alphabétique (A-Z)</option>
-                <option value="alpha-desc">Ordre alphabétique (Z-A)</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="card bg-white rounded-3 border-stone-200 shadow-sm overflow-hidden border-0">
-          <div className="table-responsive">
-            <table className="table table-hover mb-0 text-start align-middle">
-              <thead className="bg-stone-50 border-stone-200 text-stone-700">
-                <tr>
-                  <th className="py-3 px-4 bg-stone-50 border-stone-200 fw-medium">Nom & Prénom</th>
-                  <th className="py-3 px-4 bg-stone-50 border-stone-200 fw-medium">Statut de paiement</th>
-                  <th className="py-3 px-4 bg-stone-50 border-stone-200 fw-medium">Email</th>
-                  <th className="py-3 px-4 bg-stone-50 border-stone-200 fw-medium text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="border-stone-100">
-                {isLoading && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-5 text-stone-400">
-                      Chargement…
-                    </td>
-                  </tr>
-                )}
-
-                {!isLoading && error && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-5 text-danger">
-                      {error}
-                    </td>
-                  </tr>
-                )}
-
-                {!isLoading && !error && filteredMembers.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-5 text-stone-400">
-                      Aucun membre ne correspond aux critères sélectionnés.
-                    </td>
-                  </tr>
-                )}
-
-                {!isLoading && !error && filteredMembers.map((member) => <MemberRow key={member.id} member={member} />)}
-              </tbody>
-            </table>
-          </div>
-
+      <DataTable<Member>
+        filters={filterFields}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        columns={columns}
+        data={filteredMembers}
+        rowKey={(m) => m.id}
+        isLoading={isLoading}
+        error={error}
+        emptyMessage="Aucun membre ne correspond aux critères sélectionnés."
+        loadingLabel="des membres"
+        renderFooter={() => (
           <div className="p-3 d-flex justify-content-between align-items-center border-top border-stone-200 bg-stone-50">
             <div className="text-stone-500 small">
               {filteredMembers.length} membre{filteredMembers.length !== 1 ? 's' : ''} affiché
               {filteredMembers.length !== 1 ? 's' : ''}
             </div>
           </div>
-        </div>
-      </div>
-    </section>
+        )}
+      />
+    </>
   );
 }

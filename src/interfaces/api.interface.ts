@@ -7,6 +7,8 @@ export interface Token extends JwtPayload {
   affiliation_number: string;
   contribution_paid: boolean;
   groups: UserGroupEnum[];
+  first_name: string;
+  last_name: string;
 }
 
 export interface ResponseList<T> {
