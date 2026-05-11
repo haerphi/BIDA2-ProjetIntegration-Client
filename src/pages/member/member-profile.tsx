@@ -57,6 +57,7 @@ export default function MemberProfile() {
   const targetId = id || 'me';
 
   const [member, setMember] = useState<Member | null>(null);
+  const [roles, setRoles] = useState<string[]>([]);
   const [contributions, setContributions] = useState<ContributionList[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -88,6 +89,16 @@ export default function MemberProfile() {
     setError(null);
     try {
       const memberData = await memberService.getProfile(targetId);
+
+      if (isAdmin) {
+        try {
+          const rolesData = await memberService.getRoles();
+          setRoles(rolesData);
+        } catch (roleErr) {
+          console.error('Failed to fetch roles:', roleErr);
+        }
+      }
+
       setMember(memberData);
       reset({
         firstname: memberData.firstname,
@@ -119,7 +130,7 @@ export default function MemberProfile() {
     setIsContribLoading(true);
     // Create a copy of params to avoid mutating state
     const cleanParams = { ...params };
-    if (cleanParams.year === '' || cleanParams.year === '0' || cleanParams.year === 0) {
+    if (cleanParams.year === '' || cleanParams.year == '0') {
       delete cleanParams.year;
     }
     try {
@@ -161,7 +172,14 @@ export default function MemberProfile() {
     setSubmitting(true);
     setError(null);
     try {
-      const updatedMember = await memberService.update(targetId, data as MemberUpdateData);
+      const { role, ...updateData } = data;
+      const updatedMember = await memberService.update(targetId, updateData as MemberUpdateData);
+      
+      if (isAdmin && member?.role !== role) {
+        await memberService.updateRole(targetId, role);
+        updatedMember.role = role;
+      }
+      
       setMember(updatedMember);
       setIsEditing(false);
       // Optional: show success toast
@@ -405,9 +423,19 @@ export default function MemberProfile() {
                             disabled={!isEditing || !isAdmin}
                             className={`form-select ${errors.role ? 'is-invalid' : ''} ${!isEditing || !isAdmin ? 'border-0 bg-light' : ''}`}
                           >
-                            <option value="member">Membre</option>
-                            <option value="staff">Staff</option>
-                            <option value="admin">Administrateur</option>
+                            {roles.length > 0 ? (
+                              roles.map((r) => (
+                                <option key={r} value={r}>
+                                  {r.charAt(0).toUpperCase() + r.slice(1)}
+                                </option>
+                              ))
+                            ) : (
+                              <>
+                                <option value="member">Membre</option>
+                                <option value="staff">Staff</option>
+                                <option value="admin">Administrateur</option>
+                              </>
+                            )}
                           </select>
                           <div className="invalid-feedback">{errors.role?.message}</div>
                         </div>

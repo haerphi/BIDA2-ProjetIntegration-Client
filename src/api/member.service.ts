@@ -22,4 +22,13 @@ export const memberService = {
     const response = await apiClient.patch<Member>(`/members/${id}/`, data);
     return response.data;
   },
+
+  updateRole: async (id: number | string, role: string): Promise<void> => {
+    await apiClient.patch(`/members/${id}/role/`, { role });
+  },
+
+  getRoles: async (): Promise<string[]> => {
+    const response = await apiClient.get<string[]>('/members/roles/');
+    return response.data;
+  },
 };
