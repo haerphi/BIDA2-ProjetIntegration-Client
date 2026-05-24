@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import CustomIcon from '../../components/Common/Icons/custom-icon';
+import CustomIcon from '../../components/common/Icons/custom-icon';
 import Header from '../../layout/header';
 
 export default function ContributionCancelPage() {

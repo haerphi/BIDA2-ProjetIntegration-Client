@@ -1,7 +1,7 @@
 import { Link, Outlet } from 'react-router-dom';
 import { useAppSelector } from '../store/hooks';
 import { authService } from '../api/auth.service';
-import CustomIcon from '../components/Common/Icons/custom-icon';
+import CustomIcon from '../components/common/Icons/custom-icon';
 import NavBar from './nav-bar/nav-bar';
 
 export default function DashboardLayout() {

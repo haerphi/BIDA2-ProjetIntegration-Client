@@ -28,7 +28,7 @@ import {
   GenderAmbiguous,
   ShieldLock,
 } from 'react-bootstrap-icons';
-import CustomIcon from '../../components/Common/Icons/custom-icon';
+import CustomIcon from '../../components/common/Icons/custom-icon';
 import DebouncedInput from '../../components/form/debounced-input';
 
 const memberSchema = z.object({
@@ -174,12 +174,12 @@ export default function MemberProfile() {
     try {
       const { role, ...updateData } = data;
       const updatedMember = await memberService.update(targetId, updateData as MemberUpdateData);
-      
+
       if (isAdmin && member?.role !== role) {
         await memberService.updateRole(targetId, role);
         updatedMember.role = role;
       }
-      
+
       setMember(updatedMember);
       setIsEditing(false);
       // Optional: show success toast

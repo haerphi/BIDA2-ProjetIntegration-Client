@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Member } from '../../interfaces/member.interface';
 import { memberService } from '../../api/member.service';
-import { DataTable } from '../../components/Common/DataTable';
-import type { ColumnDef, FilterFieldDef } from '../../components/Common/DataTable';
+import { DataTable } from '../../components/common/data-table';
+import type { ColumnDef, FilterFieldDef } from '../../components/common/data-table';
 import { PaymentBadge } from './components/payment-badge';
 import { Link } from 'react-router-dom';
-import CustomIcon from '../../components/Common/Icons/custom-icon';
+import CustomIcon from '../../components/common/Icons/custom-icon';
 import Header from '../../layout/header';
 
-/* ── Column definitions ───────────────────────────── */
 const columns: ColumnDef<Member>[] = [
   {
     key: 'name',
@@ -45,7 +44,6 @@ const columns: ColumnDef<Member>[] = [
   },
 ];
 
-/* ── Filter definitions ───────────────────────────── */
 const filterFields: FilterFieldDef[] = [
   { key: 'search', label: 'Recherche par nom', type: 'text', placeholder: 'Ex: Dupont', minWidth: '200px' },
   {
@@ -73,7 +71,6 @@ const filterFields: FilterFieldDef[] = [
   },
 ];
 
-/* ── Page component ───────────────────────────────── */
 export default function MemberListPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);

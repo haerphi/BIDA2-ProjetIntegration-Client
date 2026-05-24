@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { contributionService } from '../../api/contribution.service';
 import { Link } from 'react-router-dom';
 import { authService } from '../../api/auth.service';
-import CustomIcon from '../../components/Common/Icons/custom-icon';
+import CustomIcon from '../../components/common/Icons/custom-icon';
 import Header from '../../layout/header';
 
 export default function ContributionSuccessPage() {

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { contributionService } from '../../api/contribution.service';
-import { DataTable } from '../../components/Common/DataTable';
-import type { ColumnDef, FilterFieldDef } from '../../components/Common/DataTable';
+import { DataTable } from '../../components/common/data-table';
+import type { ColumnDef, FilterFieldDef } from '../../components/common/data-table';
 import type { ContributionList } from '../../interfaces/contribution.interface';
 import Header from '../../layout/header';
 

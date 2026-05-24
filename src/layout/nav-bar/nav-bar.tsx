@@ -1,7 +1,7 @@
 import { UserGroup, type UserGroupEnum } from '../../enums/user-groupe.enum';
 import { useAppSelector } from '../../store/hooks';
 import { selectGroups, selectIsAdmin } from '../../store/slices/auth.slice';
-import { type IconName } from '../../components/Common/Icons/custom-icon';
+import { type IconName } from '../../components/common/Icons/custom-icon';
 import NavItem from './nav-item';
 
 interface NavItem {
@@ -23,6 +23,7 @@ export default function NavBar({ className }: { className?: string }) {
       icon: 'ShieldLockFill',
       roles: [UserGroup.ADMIN],
       children: [
+        { path: '/courts/create', label: 'Ajouter un terrain', icon: 'PlusCircle' },
         { path: '/members', label: 'Membres', icon: 'PersonFill' },
         { path: '/contributions', label: 'Cotisations', icon: 'CurrencyDollar' },
       ],

@@ -106,6 +106,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
                   {f.type === 'text' ? (
                     <DebouncedInput
                       id={f.key}
+                      type="text"
                       className="form-control custom-input"
                       placeholder={f.placeholder}
                       value={filterValues[f.key] ?? ''}

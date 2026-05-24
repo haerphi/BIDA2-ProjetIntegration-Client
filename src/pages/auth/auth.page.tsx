@@ -5,7 +5,7 @@ import { authService } from '../../api/auth.service';
 import { isAxiosError } from 'axios';
 import GoogleButton from './components/google-button';
 import { useNavigate } from 'react-router-dom';
-import CustomIcon from '../../components/Common/Icons/custom-icon';
+import CustomIcon from '../../components/common/Icons/custom-icon';
 
 const loginSchema = z.object({
   affiliation_number: z.string().min(1, 'Affiliate number is required'),

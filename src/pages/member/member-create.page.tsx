@@ -6,7 +6,7 @@ import { memberService } from '../../api/member.service';
 import type { MemberCreateData } from '../../interfaces/member.interface';
 import { useState } from 'react';
 import { ArrowLeft, Save } from 'react-bootstrap-icons';
-import CustomIcon from '../../components/Common/Icons/custom-icon';
+import Header from '../../layout/header';
 
 const memberSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
@@ -75,19 +75,9 @@ export default function MemberCreatePage() {
 
   return (
     <>
-      {' '}
-      <header className="bg-white border-bottom border-stone-200 px-4 py-3">
-        <h2 className="h4 mb-1 fw-semibold text-stone-800">
-          <CustomIcon iconName="PersonAdd" className="w-50 h-50 me-2 text-emerald-600" />
-          Ajouter un membre
-        </h2>
-      </header>
+      <Header pageName="Ajout d'un membre" icon="PersonAdd" />
       <div className="container-fluid py-4">
         <div className="d-flex justify-content-between align-items-center">
-          <div>
-            <h2 className="h3 mb-1 fw-bold text-dark">Nouveau Membre</h2>
-            <p className="text-muted small mb-0">Remplissez les informations pour inscrire un nouveau membre.</p>
-          </div>
           <button
             type="button"
             onClick={() => navigate('/members')}

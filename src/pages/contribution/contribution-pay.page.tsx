@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAppSelector } from '../../store/hooks';
 import { contributionService } from '../../api/contribution.service';
-import CustomIcon from '../../components/Common/Icons/custom-icon';
+import CustomIcon from '../../components/common/Icons/custom-icon';
 import Header from '../../layout/header';
 
 export default function ContributionPayPage() {

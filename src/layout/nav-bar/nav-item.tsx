@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import CustomIcon, { type IconName } from '../../components/Common/Icons/custom-icon';
+import CustomIcon, { type IconName } from '../../components/common/Icons/custom-icon';
 
 interface NavItemProps {
   to?: string;

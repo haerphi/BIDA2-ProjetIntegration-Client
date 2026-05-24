@@ -1,6 +1,7 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthPage from './auth/auth.page';
-import CourtListingPage from './court/court-listing/court-listing.page';
+import CourtListingPage from './court/court-listing.page';
+import CourtCreatePage from './court/court-create.page';
 import NotFoundPage from './errors/not-found.page';
 import ContributionPayPage from './contribution/contribution-pay.page';
 import ContributionSuccessPage from './contribution/contribution-success.page';
@@ -99,6 +100,10 @@ const appRoutes: Array<RouteObject> = [
             path: '/contributions',
             element: <ContributionListPage />,
           },
+          {
+            path: '/courts/create',
+            element: <CourtCreatePage />,
+          }
         ],
       },
     ],
