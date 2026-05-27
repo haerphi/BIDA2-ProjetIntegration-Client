@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
-import type { ChangeEvent } from 'react';
-import { X, Search } from 'react-bootstrap-icons';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
+import { X, Search, ChevronDown } from 'react-bootstrap-icons';
 
 export type Choice = {
   value: any;
@@ -16,6 +16,11 @@ export type MultipleInputProp = {
 export default function MultipleInput({ choices, onSelected, onSearchChanges }: MultipleInputProp) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState<Choice[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const normalizedChoices = useMemo(() => {
     if (!choices) return [];
@@ -45,22 +50,75 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges }: 
     });
   }, [normalizedChoices, selectedItems, searchTerm, onSearchChanges]);
 
+  // Handle clicking outside of the dropdown container
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
+    setIsOpen(true);
+    setFocusedIndex(-1); // Reset index on filter change
     if (onSearchChanges) {
       onSearchChanges(value);
     }
   };
 
-  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const idx = parseInt(e.target.value, 10);
-    if (isNaN(idx)) return;
-    const selectedChoice = filteredChoices[idx];
-    if (selectedChoice) {
-      const updated = [...selectedItems, selectedChoice];
-      setSelectedItems(updated);
-      onSelected?.(updated);
+  const handleSelectChoice = (choice: Choice) => {
+    const updated = [...selectedItems, choice];
+    setSelectedItems(updated);
+    onSelected?.(updated);
+    setSearchTerm('');
+    if (onSearchChanges) {
+      onSearchChanges('');
+    }
+    setFocusedIndex(-1);
+    // Keep focus in the input for seamless typing experience
+    inputRef.current?.focus();
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev + 1) % filteredChoices.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setFocusedIndex((prev) => (prev - 1 + filteredChoices.length) % filteredChoices.length);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (focusedIndex >= 0 && focusedIndex < filteredChoices.length) {
+          handleSelectChoice(filteredChoices[focusedIndex]);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setIsOpen(false);
+        break;
+      case 'Tab':
+        setIsOpen(false);
+        break;
+      default:
+        break;
     }
   };
 
@@ -81,32 +139,64 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges }: 
   };
 
   return (
-    <div className="multiple-input-container w-100">
-      <div className="input-group mb-2 shadow-sm rounded-3 overflow-hidden">
+    <div ref={containerRef} className="multiple-input-container w-100 position-relative">
+      <div className="input-group mb-2 shadow-sm rounded-3 overflow-hidden border border-stone-200">
         <span className="input-group-text bg-white border-end-0 text-stone-500 py-2 ps-3">
           <Search size={16} className="text-stone-400" />
         </span>
         <input
+          ref={inputRef}
           type="text"
           className="form-control custom-input border-start-0 ps-2 py-2 text-stone-800"
           placeholder="Rechercher des options..."
           value={searchTerm}
           onChange={handleSearchChange}
+          onFocus={() => setIsOpen(true)}
+          onKeyDown={handleKeyDown}
         />
+        <button
+          type="button"
+          className="custom-dropdown-chevron bg-white border-start-0 border-0"
+          onClick={() => setIsOpen(!isOpen)}
+          title="Afficher la liste"
+        >
+          <ChevronDown
+            size={14}
+            style={{
+              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease',
+            }}
+          />
+        </button>
       </div>
 
-      <div className="mb-3 shadow-sm rounded-3 overflow-hidden">
-        <select className="form-select custom-select py-2 text-stone-700" value="" onChange={handleSelectChange}>
-          <option value="" disabled>
-            {filteredChoices.length === 0 ? 'Aucune option disponible' : 'Choisir des options dans la liste...'}
-          </option>
-          {filteredChoices.map((choice, idx) => (
-            <option key={`${choice.label}-${idx}`} value={idx}>
-              {choice.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {isOpen && (
+        <div className="custom-dropdown-menu shadow-lg border border-stone-200 rounded-3">
+          {filteredChoices.length === 0 ? (
+            <div className="p-3 text-stone-500 text-center small">Aucune option disponible</div>
+          ) : (
+            filteredChoices.map((choice, idx) => {
+              const isFocused = idx === focusedIndex;
+              return (
+                <button
+                  key={`${choice.label}-${idx}`}
+                  type="button"
+                  className={`custom-dropdown-item ${isFocused ? 'focused' : ''}`}
+                  onClick={() => handleSelectChoice(choice)}
+                  onMouseEnter={() => setFocusedIndex(idx)}
+                >
+                  <span>{choice.label}</span>
+                  {isFocused && (
+                    <span className="text-emerald-600 fw-semibold" style={{ fontSize: '11px' }}>
+                      Entrée ↵
+                    </span>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+      )}
 
       {selectedItems.length > 0 && (
         <div className="selected-items-wrapper mt-3 animate-fade-in">
@@ -156,3 +246,4 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges }: 
     </div>
   );
 }
+

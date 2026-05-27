@@ -271,3 +271,66 @@ body {
 .slot-available:hover {
   background-color: #d1fae5;
 }
+/* --- CUSTOM SEARCH MULTISELECT --- */
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border: 1px solid var(--stone-200);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  z-index: 1050;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--stone-300) transparent;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: var(--stone-300);
+  border-radius: 3px;
+}
+
+.custom-dropdown-item {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--stone-700);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.custom-dropdown-item:hover,
+.custom-dropdown-item.focused {
+  background-color: #ecfdf5 !important;
+  color: var(--emerald-900) !important;
+  font-weight: 500;
+}
+
+.custom-dropdown-chevron {
+  background: transparent;
+  border: none;
+  padding: 0 0.75rem;
+  display: flex;
+  align-items: center;
+  color: var(--stone-500);
+  cursor: pointer;
+}
+
