@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import type { ColumnDef, FilterFieldDef } from './data-table.types';
 import DebouncedInput from '../../form/debounced-input';
+import Spinner from '../spinner';
 
 const DEFAULT_PAGE_SIZES = [5, 10, 25, 50];
 
@@ -156,9 +157,7 @@ export function DataTable<T>(props: DataTableProps<T>) {
               {isLoading && (
                 <tr>
                   <td colSpan={colSpan} className="text-center py-5 text-stone-400">
-                    <div className="spinner-border spinner-border-sm me-2" role="status">
-                      <span className="visually-hidden">Chargement…</span>
-                    </div>
+                    <Spinner size="sm" className="me-2" label={`Chargement ${loadingLabel}…`} />
                     Chargement {loadingLabel}…
                   </td>
                 </tr>

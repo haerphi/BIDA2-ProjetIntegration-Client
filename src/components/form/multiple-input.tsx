@@ -11,9 +11,10 @@ export type MultipleInputProp = {
   choices: Choice | Choice[];
   onSelected?: (selected: Choice[]) => void;
   onSearchChanges?: (search: string) => void;
+  max?: number;
 };
 
-export default function MultipleInput({ choices, onSelected, onSearchChanges }: MultipleInputProp) {
+export default function MultipleInput({ choices, onSelected, onSearchChanges, max }: MultipleInputProp) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItems, setSelectedItems] = useState<Choice[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -74,6 +75,9 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges }: 
   };
 
   const handleSelectChoice = (choice: Choice) => {
+    if (max !== undefined && selectedItems.length >= max) {
+      return;
+    }
     const updated = [...selectedItems, choice];
     setSelectedItems(updated);
     onSelected?.(updated);
@@ -82,8 +86,13 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges }: 
       onSearchChanges('');
     }
     setFocusedIndex(-1);
-    // Keep focus in the input for seamless typing experience
-    inputRef.current?.focus();
+    
+    if (max !== undefined && updated.length >= max) {
+      setIsOpen(false);
+    } else {
+      // Keep focus in the input for seamless typing experience
+      inputRef.current?.focus();
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -139,64 +148,76 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges }: 
   };
 
   return (
-    <div ref={containerRef} className="multiple-input-container w-100 position-relative">
-      <div className="input-group mb-2 shadow-sm rounded-3 overflow-hidden border border-stone-200">
-        <span className="input-group-text bg-white border-end-0 text-stone-500 py-2 ps-3">
-          <Search size={16} className="text-stone-400" />
-        </span>
-        <input
-          ref={inputRef}
-          type="text"
-          className="form-control custom-input border-start-0 ps-2 py-2 text-stone-800"
-          placeholder="Rechercher des options..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          onFocus={() => setIsOpen(true)}
-          onKeyDown={handleKeyDown}
-        />
-        <button
-          type="button"
-          className="custom-dropdown-chevron bg-white border-start-0 border-0"
-          onClick={() => setIsOpen(!isOpen)}
-          title="Afficher la liste"
-        >
-          <ChevronDown
-            size={14}
-            style={{
-              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s ease',
+    <div ref={containerRef} className="multiple-input-container w-100">
+      <div className="position-relative">
+        <div className="input-group mb-2 shadow-sm rounded-3 overflow-hidden border border-stone-200">
+          <span className="input-group-text bg-white border-end-0 text-stone-500 py-2 ps-3">
+            <Search size={16} className="text-stone-400" />
+          </span>
+          <input
+            ref={inputRef}
+            type="text"
+            className="form-control custom-input border-start-0 ps-2 py-2 text-stone-800"
+            placeholder={max !== undefined && selectedItems.length >= max ? `Maximum de ${max} sélectionné(s)` : "Rechercher des options..."}
+            value={searchTerm}
+            onChange={handleSearchChange}
+            onFocus={() => {
+              if (max === undefined || selectedItems.length < max) {
+                setIsOpen(true);
+              }
             }}
+            onKeyDown={handleKeyDown}
+            disabled={max !== undefined && selectedItems.length >= max}
           />
-        </button>
-      </div>
-
-      {isOpen && (
-        <div className="custom-dropdown-menu shadow-lg border border-stone-200 rounded-3">
-          {filteredChoices.length === 0 ? (
-            <div className="p-3 text-stone-500 text-center small">Aucune option disponible</div>
-          ) : (
-            filteredChoices.map((choice, idx) => {
-              const isFocused = idx === focusedIndex;
-              return (
-                <button
-                  key={`${choice.label}-${idx}`}
-                  type="button"
-                  className={`custom-dropdown-item ${isFocused ? 'focused' : ''}`}
-                  onClick={() => handleSelectChoice(choice)}
-                  onMouseEnter={() => setFocusedIndex(idx)}
-                >
-                  <span>{choice.label}</span>
-                  {isFocused && (
-                    <span className="text-emerald-600 fw-semibold" style={{ fontSize: '11px' }}>
-                      Entrée ↵
-                    </span>
-                  )}
-                </button>
-              );
-            })
-          )}
+          <button
+            type="button"
+            className="custom-dropdown-chevron bg-white border-start-0 border-0"
+            onClick={() => {
+              if (max === undefined || selectedItems.length < max) {
+                setIsOpen(!isOpen);
+              }
+            }}
+            disabled={max !== undefined && selectedItems.length >= max}
+            title="Afficher la liste"
+          >
+            <ChevronDown
+              size={14}
+              style={{
+                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease',
+              }}
+            />
+          </button>
         </div>
-      )}
+
+        {isOpen && (
+          <div className="custom-dropdown-menu shadow-lg border border-stone-200 rounded-3">
+            {filteredChoices.length === 0 ? (
+              <div className="p-3 text-stone-500 text-center small">Aucune option disponible</div>
+            ) : (
+              filteredChoices.map((choice, idx) => {
+                const isFocused = idx === focusedIndex;
+                return (
+                  <button
+                    key={`${choice.label}-${idx}`}
+                    type="button"
+                    className={`custom-dropdown-item ${isFocused ? 'focused' : ''}`}
+                    onClick={() => handleSelectChoice(choice)}
+                    onMouseEnter={() => setFocusedIndex(idx)}
+                  >
+                    <span>{choice.label}</span>
+                    {isFocused && (
+                      <span className="text-emerald-600 fw-semibold" style={{ fontSize: '11px' }}>
+                        Entrée ↵
+                      </span>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
 
       {selectedItems.length > 0 && (
         <div className="selected-items-wrapper mt-3 animate-fade-in">

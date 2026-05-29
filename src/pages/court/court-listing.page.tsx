@@ -5,12 +5,10 @@ import MultipleInput from '../../components/form/multiple-input';
 import TablePlanning, { type PlanningCourt } from './components/table-planning';
 import type { Court } from '../../interfaces/court.interface';
 import type { Choice } from '../../components/form/multiple-input';
+import dayjs, { Dayjs } from 'dayjs';
 
-const formatDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+const formatDate = (date: Dayjs) => {
+  return date.format('YYYY-MM-DD');
 };
 
 export default function CourtListingPage() {
@@ -18,7 +16,7 @@ export default function CourtListingPage() {
   const [courtChoices, setCourtChoices] = useState<Choice[]>([]);
   const [selectedCourts, setSelectedCourts] = useState<Choice[]>([]); // multiple select input
   const [tablPlanningCourt, setTablPlanningCourt] = useState<PlanningCourt[]>([]);
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
 
   useEffect(() => {
     const fetchCourts = async () => {
@@ -42,7 +40,7 @@ export default function CourtListingPage() {
       return selectedCourts.some((sc) => sc.value === court.id);
     });
 
-    const dateStr = formatDate(currentDate);
+    const dateStr = formatDate(selectedDate);
 
     // Set initial loading states
     const initialPlanning: PlanningCourt[] = filtered.map((court) => ({
@@ -69,7 +67,7 @@ export default function CourtListingPage() {
           );
         });
     });
-  }, [courts, selectedCourts, currentDate]);
+  }, [courts, selectedCourts, selectedDate]);
 
   return (
     <>
@@ -80,7 +78,7 @@ export default function CourtListingPage() {
           <div className="d-flex gap-2 align-items-center">
             <button
               className="btn btn-sm btn-outline-secondary bg-white border-stone-300 hover-bg-stone-50 transition"
-              onClick={() => setCurrentDate(new Date())}
+              onClick={() => setSelectedDate(dayjs())}
             >
               Aujourd'hui
             </button>
@@ -88,9 +86,7 @@ export default function CourtListingPage() {
               <button
                 className="btn btn-sm btn-outline-secondary bg-white border-stone-300 hover-bg-stone-50 transition"
                 onClick={() => {
-                  const d = new Date(currentDate);
-                  d.setDate(d.getDate() - 1);
-                  setCurrentDate(d);
+                  setSelectedDate(selectedDate.subtract(1, 'day'));
                 }}
               >
                 &lt;
@@ -98,16 +94,14 @@ export default function CourtListingPage() {
               <button
                 className="btn btn-sm btn-outline-secondary bg-white border-stone-300 hover-bg-stone-50 transition"
                 onClick={() => {
-                  const d = new Date(currentDate);
-                  d.setDate(d.getDate() + 1);
-                  setCurrentDate(d);
+                  setSelectedDate(selectedDate.add(1, 'day'));
                 }}
               >
                 &gt;
               </button>
             </div>
             <span className="ms-2 text-stone-600 fw-medium small">
-              {currentDate.toLocaleDateString('fr-FR', {
+              {selectedDate.toDate().toLocaleDateString('fr-FR', {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -146,7 +140,13 @@ export default function CourtListingPage() {
           </div>
         </div>
 
-        <TablePlanning courts={tablPlanningCourt} />
+        {courts.length === 0 && (
+          <div className="d-flex justify-content-center align-items-center py-5">
+            <span className="text-stone-600 small">Aucun terrain disponible</span>
+          </div>
+        )}
+
+        {courts.length > 0 && <TablePlanning courts={tablPlanningCourt} selectedDate={selectedDate} />}
       </div>
     </>
   );

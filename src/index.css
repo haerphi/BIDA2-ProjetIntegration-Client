@@ -271,6 +271,21 @@ body {
 .slot-available:hover {
   background-color: #d1fae5;
 }
+
+/* --- PLANNING HOVER REVEAL EFFECT --- */
+.planning-slot {
+  position: relative;
+}
+
+.planning-slot .planning-reserve-btn {
+  opacity: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.planning-slot:hover .planning-reserve-btn {
+  opacity: 1;
+}
+
 /* --- CUSTOM SEARCH MULTISELECT --- */
 .custom-dropdown-menu {
   position: absolute;

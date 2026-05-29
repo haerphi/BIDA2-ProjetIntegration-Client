@@ -40,6 +40,7 @@ export interface MemberListQueryParams {
   phone?: string;
   postal_code?: string;
   ranking?: string;
+  search?: string;
 }
 
 export interface MemberCreateData {

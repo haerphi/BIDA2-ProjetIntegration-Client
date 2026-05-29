@@ -1,5 +1,8 @@
-import type { Court, Reservation } from '../../../interfaces/court.interface';
+import type { Reservation } from '../../../interfaces/court.interface';
 import { useAppSelector } from '../../../store/hooks';
+import ReserveButton from './reserve-button';
+import dayjs, { Dayjs } from 'dayjs';
+import Spinner from '../../../components/common/spinner';
 
 export interface PlanningCourt {
   id: number;
@@ -10,6 +13,7 @@ export interface PlanningCourt {
 
 export type TablePlanningProps = {
   courts: PlanningCourt[];
+  selectedDate: Dayjs;
 };
 
 const TIME_SLOTS = [
@@ -32,17 +36,17 @@ const TIME_SLOTS = [
 
 const getReservationForSlot = (reservations: Reservation[] | undefined, slotHour: number) => {
   if (!reservations) return null;
-  
+
   return reservations.find((res) => {
-    const start = new Date(res.date_time);
-    const startHour = start.getHours();
+    const start = dayjs(res.date_time);
+    const startHour = start.hour();
     const durationHours = Math.ceil(res.duration / 60);
-    
+
     return slotHour >= startHour && slotHour < startHour + durationHours;
   });
 };
 
-export default function TablePlanning({ courts }: TablePlanningProps) {
+export default function TablePlanning({ courts, selectedDate }: TablePlanningProps) {
   const currentUserId = useAppSelector((state) => state.auth.tokenPayload?.user_id);
 
   return (
@@ -58,30 +62,18 @@ export default function TablePlanning({ courts }: TablePlanningProps) {
                 {court.name}
               </th>
             ))}
-            {courts.length === 0 && (
-              <>
-                <th className="py-3 bg-stone-50 border-stone-200 fw-medium">Terrain 1</th>
-                <th className="py-3 bg-stone-50 border-stone-200 fw-medium">Terrain 2</th>
-                <th className="py-3 bg-stone-50 border-stone-200 fw-medium">Terrain 3</th>
-                <th className="py-3 bg-stone-50 border-stone-200 fw-medium">Terrain 4</th>
-              </>
-            )}
           </tr>
         </thead>
         <tbody className="border-stone-100">
           {TIME_SLOTS.map((slot) => (
             <tr key={slot.label}>
-              <td className="bg-stone-50 border-stone-200 fw-medium text-stone-600 py-3">
-                {slot.label}
-              </td>
+              <td className="bg-stone-50 border-stone-200 fw-medium text-stone-600 py-3">{slot.label}</td>
               {courts.map((court) => {
                 if (court.loading) {
                   return (
                     <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
                       <div className="d-flex align-items-center justify-content-center h-100">
-                        <div className="spinner-border spinner-border-sm text-emerald-500" role="status" style={{ width: '1.2rem', height: '1.2rem' }}>
-                          <span className="visually-hidden">Chargement...</span>
-                        </div>
+                        <Spinner size="sm" />
                       </div>
                     </td>
                   );
@@ -90,7 +82,7 @@ export default function TablePlanning({ courts }: TablePlanningProps) {
                 const res = getReservationForSlot(court.reservations, slot.hour);
                 if (res) {
                   const isMyRes = String(res.creator?.id) === String(currentUserId);
-                  const isStartHour = new Date(res.date_time).getHours() === slot.hour;
+                  const isStartHour = dayjs(res.date_time).hour() === slot.hour;
 
                   if (isMyRes) {
                     return (
@@ -133,61 +125,32 @@ export default function TablePlanning({ courts }: TablePlanningProps) {
                   }
                 }
 
+                const today = dayjs();
+                const isToday = selectedDate.isSame(today, 'day');
+                const isPastHour = isToday && slot.hour < today.hour();
+                const isPastDate = selectedDate.isBefore(today, 'day');
+
+                console.log(isPastHour || isPastDate);
+
+                console.log({
+                  slotHour: slot.hour,
+                  selectedHour: today.hour(),
+                  selectedDate: selectedDate.toDate(),
+                  courtLoading: court.loading,
+                  isPastHour,
+                  isPastDate,
+                });
+
+                if (isPastHour || isPastDate || court.loading) {
+                  return null;
+                }
+
                 return (
-                  <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
-                    <div
-                      className="border border-2 border-emerald-400 bg-emerald-50 text-emerald-600 fw-medium rounded h-100 d-flex align-items-center justify-content-center hover-bg-emerald-50 transition"
-                      style={{ cursor: 'pointer', borderStyle: 'dashed !important' }}
-                    >
-                      Réserver
-                    </div>
+                  <td key={court.id} className="p-1 border-stone-200 planning-slot" style={{ height: '72px' }}>
+                    <ReserveButton courtId={court.id} selectedDate={selectedDate} hour={slot.hour} />
                   </td>
                 );
               })}
-              {courts.length === 0 && (
-                <>
-                  {slot.hour === 10 ? (
-                    <>
-                      <td className="p-1 border-stone-200" style={{ height: '72px' }}>
-                        <div className="bg-stone-200 text-stone-500 rounded h-100 d-flex align-items-center justify-content-center">
-                          Réservé
-                        </div>
-                      </td>
-                      <td className="p-1 border-stone-200" style={{ height: '72px' }}>
-                        <div
-                          className="border border-2 border-emerald-400 bg-emerald-50 text-emerald-600 fw-medium rounded h-100 d-flex align-items-center justify-content-center hover-bg-emerald-50 transition"
-                          style={{ cursor: 'pointer', borderStyle: 'dashed !important' }}
-                        >
-                          Réserver
-                        </div>
-                      </td>
-                      <td className="p-1 border-stone-200"></td>
-                      <td className="p-1 border-stone-200"></td>
-                    </>
-                  ) : slot.hour === 18 ? (
-                    <>
-                      <td className="p-1 border-stone-200" style={{ height: '72px' }}></td>
-                      <td className="p-1 border-stone-200" style={{ height: '72px' }}>
-                        <div
-                          className="bg-primary text-white rounded h-100 p-2 text-start lh-sm"
-                          style={{ fontSize: '11px' }}
-                        >
-                          <strong className="d-block mb-1">Simple</strong>avec M. Curie
-                        </div>
-                      </td>
-                      <td className="p-1 border-stone-200"></td>
-                      <td className="p-1 border-stone-200"></td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="p-1 border-stone-200"></td>
-                      <td className="p-1 border-stone-200"></td>
-                      <td className="p-1 border-stone-200"></td>
-                      <td className="p-1 border-stone-200"></td>
-                    </>
-                  )}
-                </>
-              )}
             </tr>
           ))}
         </tbody>
