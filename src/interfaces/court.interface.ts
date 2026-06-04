@@ -1,3 +1,4 @@
+import type { BookingType } from '../enums/booking-type.enum';
 import type { Member } from './member.interface';
 
 export interface Court {
@@ -15,4 +16,6 @@ export interface Reservation {
   date_time: string;
   duration: number;
   creator: Member;
+  type: BookingType;
+  comment?: string;
 }

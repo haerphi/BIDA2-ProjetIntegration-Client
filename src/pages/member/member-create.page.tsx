@@ -23,7 +23,7 @@ const memberSchema = z.object({
   country: z.string().min(2, 'Le pays est invalide'),
   affiliation_number: z.string().min(1, "Numéro d'affiliation requis"),
   ranking: z.string().min(1, 'Classement requis'),
-  role: z.string().min(1, 'Rôle requis'),
+  role: z.string().min(1, 'Rôle requis').default('member'),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 });
 
@@ -52,7 +52,7 @@ export default function MemberCreatePage() {
       country: '',
       affiliation_number: '',
       ranking: '',
-      role: '',
+      role: 'member',
       password: '',
     },
   });
@@ -67,7 +67,11 @@ export default function MemberCreatePage() {
       await memberService.create(submitData as MemberCreateData);
       navigate('/members');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Une erreur est survenue lors de la création du membre.');
+      setError(
+        err.response?.data?.email[0] ||
+          err.response?.data?.detail ||
+          'Une erreur est survenue lors de la création du membre.',
+      );
     } finally {
       setLoading(false);
     }
@@ -136,6 +140,7 @@ export default function MemberCreatePage() {
                   <div className="col-md-6">
                     <label className="form-label fw-medium">Téléphone</label>
                     <input
+                      type="tel"
                       {...register('phone')}
                       className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
                       placeholder="06 12 34 56 78"
@@ -224,7 +229,7 @@ export default function MemberCreatePage() {
                     <input
                       {...register('affiliation_number')}
                       className={`form-control ${errors.affiliation_number ? 'is-invalid' : ''}`}
-                      placeholder="AFF-2024-001"
+                      placeholder="1234567"
                     />
                     <div className="invalid-feedback">{errors.affiliation_number?.message}</div>
                   </div>
@@ -250,7 +255,7 @@ export default function MemberCreatePage() {
                   </div>
 
                   <div className="col-12">
-                    <label className="form-label fw-medium">Mot de passe (optionnel)</label>
+                    <label className="form-label fw-medium">Mot de passe</label>
                     <input
                       type="password"
                       {...register('password')}

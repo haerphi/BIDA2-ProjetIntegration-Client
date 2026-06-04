@@ -2,6 +2,7 @@ import type { Court, CourtCreateData, Reservation } from '../interfaces/court.in
 import apiClient from './api-client';
 import { store } from '../store/store';
 import { setCourts } from '../store/slices/court.slice';
+import dayjs from 'dayjs';
 
 export const courtService = {
   create: async (data: CourtCreateData): Promise<Court> => {
@@ -42,9 +43,32 @@ export const courtService = {
       members: number[];
       date_time: string;
       duration: number;
-    }
+      comment?: string;
+    },
   ): Promise<any> => {
     const response = await apiClient.post<any>(`/courts/${courtId}/reservations/`, data);
+    return response.data;
+  },
+
+  checkEligibility: async (
+    memberId: string,
+    date_time: string,
+  ): Promise<{ can_book: boolean; reason: string | null }> => {
+    const response = await apiClient.get<{ can_book: boolean; reason: string | null }>(`/courts/check-eligibility/`, {
+      params: {
+        member_id: memberId,
+        date_time,
+      },
+    });
+    return response.data;
+  },
+
+  myWeeklyReservations: async (date?: string): Promise<Reservation[]> => {
+    const response = await apiClient.get<Reservation[]>(`/courts/my-weekly-reservations/`, {
+      params: {
+        date: date || dayjs.utc().format('YYYY-MM-DD'),
+      },
+    });
     return response.data;
   },
 };

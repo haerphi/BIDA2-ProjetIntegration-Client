@@ -55,4 +55,6 @@ export const selectIsAdmin = (state: RootState) => state.auth.tokenPayload?.grou
 
 export const selectGroups = (state: RootState) => state.auth.tokenPayload?.groups ?? [];
 
+export const selectMemberId = (state: RootState) => state.auth.tokenPayload?.user_id ?? null;
+
 export default authSlice.reducer;

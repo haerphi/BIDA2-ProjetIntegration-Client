@@ -34,9 +34,6 @@ export interface MemberListQueryParams {
   is_active?: boolean;
   last_name?: string;
 
-  /** Champ utilisé pour le tri (ex: "first_name" ou "-first_name") */
-  ordering?: string;
-
   phone?: string;
   postal_code?: string;
   ranking?: string;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Member } from '../../interfaces/member.interface';
+import type { Member, MemberListQueryParams } from '../../interfaces/member.interface';
 import { memberService } from '../../api/member.service';
 import { DataTable } from '../../components/common/data-table';
 import type { ColumnDef, FilterFieldDef } from '../../components/common/data-table';
@@ -45,28 +45,24 @@ const columns: ColumnDef<Member>[] = [
 ];
 
 const filterFields: FilterFieldDef[] = [
-  { key: 'search', label: 'Recherche par nom', type: 'text', placeholder: 'Ex: Dupont', minWidth: '200px' },
+  {
+    key: 'search',
+    label: 'Recherche par nom, prénom, Email',
+    type: 'text',
+    placeholder: 'Ex: Dupont ou toto@mail.com',
+    minWidth: '200px',
+  },
   {
     key: 'ranking',
     label: 'Classement',
     type: 'select',
     minWidth: '200px',
     options: [
-      { value: 'all', label: 'Tous' },
+      { value: '', label: 'Tous' },
       { value: 'A', label: 'A' },
       { value: 'B', label: 'Série B' },
       { value: 'C', label: 'Série C' },
       { value: 'NC', label: 'N.C' },
-    ],
-  },
-  {
-    key: 'sort',
-    label: 'Trier par',
-    type: 'select',
-    minWidth: '200px',
-    options: [
-      { value: 'alpha-asc', label: 'Ordre alphabétique (A-Z)' },
-      { value: 'alpha-desc', label: 'Ordre alphabétique (Z-A)' },
     ],
   },
 ];
@@ -76,10 +72,19 @@ export default function MemberListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [filterValues, setFilterValues] = useState<Record<string, string>>({
+  const [filterValues, setFilterValues] = useState<MemberListQueryParams>({
+    affiliation_number: '',
+    birth_date: '',
+    country: '',
+    email: '',
+    first_name: '',
+    gender: undefined,
+    is_active: undefined,
+    last_name: '',
+    phone: '',
+    postal_code: '',
+    ranking: '',
     search: '',
-    ranking: 'all',
-    sort: 'alpha-asc',
   });
 
   useEffect(() => {
@@ -89,7 +94,7 @@ export default function MemberListPage() {
     setError(null);
 
     memberService
-      .getAll()
+      .getAll(filterValues)
       .then((response) => {
         if (!cancelled) setMembers(response.data);
       })
@@ -103,33 +108,11 @@ export default function MemberListPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [filterValues]);
 
   const handleFilterChange = useCallback((key: string, value: string) => {
     setFilterValues((prev) => ({ ...prev, [key]: value }));
   }, []);
-
-  const filteredMembers = useMemo(() => {
-    let result = [...members];
-
-    const search = filterValues.search?.trim().toLowerCase();
-    if (search) {
-      result = result.filter(
-        (m) => m.lastname.toLowerCase().includes(search) || m.firstname.toLowerCase().includes(search),
-      );
-    }
-
-    if (filterValues.ranking !== 'all') {
-      result = result.filter((m) => m.ranking === filterValues.ranking);
-    }
-
-    result.sort((a, b) => {
-      const cmp = a.lastname.localeCompare(b.lastname, 'fr');
-      return filterValues.sort === 'alpha-asc' ? cmp : -cmp;
-    });
-
-    return result;
-  }, [members, filterValues]);
 
   return (
     <>
@@ -143,10 +126,10 @@ export default function MemberListPage() {
 
       <DataTable<Member>
         filters={filterFields}
-        filterValues={filterValues}
+        filterValues={filterValues as Record<string, string>}
         onFilterChange={handleFilterChange}
         columns={columns}
-        data={filteredMembers}
+        data={members}
         rowKey={(m) => m.id}
         isLoading={isLoading}
         error={error}
@@ -155,8 +138,8 @@ export default function MemberListPage() {
         renderFooter={() => (
           <div className="p-3 d-flex justify-content-between align-items-center border-top border-stone-200 bg-stone-50">
             <div className="text-stone-500 small">
-              {filteredMembers.length} membre{filteredMembers.length !== 1 ? 's' : ''} affiché
-              {filteredMembers.length !== 1 ? 's' : ''}
+              {members.length} membre{members.length !== 1 ? 's' : ''} affiché
+              {members.length !== 1 ? 's' : ''}
             </div>
           </div>
         )}

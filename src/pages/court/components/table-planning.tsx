@@ -2,6 +2,9 @@ import type { Reservation } from '../../../interfaces/court.interface';
 import { useAppSelector } from '../../../store/hooks';
 import ReserveButton from './reserve-button';
 import dayjs, { Dayjs } from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+
+dayjs.extend(utc);
 import Spinner from '../../../components/common/spinner';
 
 export interface PlanningCourt {
@@ -14,6 +17,7 @@ export interface PlanningCourt {
 export type TablePlanningProps = {
   courts: PlanningCourt[];
   selectedDate: Dayjs;
+  canBook: boolean;
 };
 
 const TIME_SLOTS = [
@@ -34,19 +38,17 @@ const TIME_SLOTS = [
   { label: '22h00', hour: 22 },
 ];
 
-const getReservationForSlot = (reservations: Reservation[] | undefined, slotHour: number) => {
+const getReservationForSlot = (reservations: Reservation[] | undefined, checkDate: Dayjs) => {
   if (!reservations) return null;
 
   return reservations.find((res) => {
-    const start = dayjs(res.date_time);
-    const startHour = start.hour();
-    const durationHours = Math.ceil(res.duration / 60);
-
-    return slotHour >= startHour && slotHour < startHour + durationHours;
+    const start = dayjs.utc(res.date_time);
+    const end = start.add(res.duration, 'minute');
+    return (checkDate.isAfter(start) || checkDate.isSame(start)) && checkDate.isBefore(end);
   });
 };
 
-export default function TablePlanning({ courts, selectedDate }: TablePlanningProps) {
+export default function TablePlanning({ courts, selectedDate, canBook }: TablePlanningProps) {
   const currentUserId = useAppSelector((state) => state.auth.tokenPayload?.user_id);
 
   return (
@@ -79,10 +81,32 @@ export default function TablePlanning({ courts, selectedDate }: TablePlanningPro
                   );
                 }
 
-                const res = getReservationForSlot(court.reservations, slot.hour);
+                const res = getReservationForSlot(court.reservations, dayjs(selectedDate).hour(slot.hour));
                 if (res) {
                   const isMyRes = String(res.creator?.id) === String(currentUserId);
                   const isStartHour = dayjs(res.date_time).hour() === slot.hour;
+
+                  if (res.type === 'blocage_admin') {
+                    return (
+                      <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
+                        <div
+                          className="bg-rose-50 border border-rose-200 text-rose-700 rounded h-100 p-2 text-start lh-sm shadow-sm"
+                          style={{ fontSize: '11px' }}
+                        >
+                          {isStartHour ? (
+                            <>
+                              <strong className="d-block mb-1 text-rose-800 fw-bold">Blocage Admin</strong>
+                              <span className="text-rose-600 font-medium">{res.comment || 'Indisponible'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-rose-600 font-medium">{res.comment || 'Indisponible'}</span>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  }
 
                   if (isMyRes) {
                     return (
@@ -127,22 +151,23 @@ export default function TablePlanning({ courts, selectedDate }: TablePlanningPro
 
                 const today = dayjs();
                 const isToday = selectedDate.isSame(today, 'day');
-                const isPastHour = isToday && slot.hour < today.hour();
+                const isPastHour = isToday && slot.hour <= today.hour();
                 const isPastDate = selectedDate.isBefore(today, 'day');
 
-                console.log(isPastHour || isPastDate);
-
-                console.log({
-                  slotHour: slot.hour,
-                  selectedHour: today.hour(),
-                  selectedDate: selectedDate.toDate(),
-                  courtLoading: court.loading,
-                  isPastHour,
-                  isPastDate,
-                });
-
-                if (isPastHour || isPastDate || court.loading) {
+                if (court.loading) {
                   return null;
+                }
+
+                if (isPastDate || (isToday && isPastHour)) {
+                  return (
+                    <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
+                      <span className="text-stone-400">Passé</span>
+                    </td>
+                  );
+                }
+
+                if (!canBook) {
+                  return <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}></td>;
                 }
 
                 return (

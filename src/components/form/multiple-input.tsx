@@ -12,16 +12,23 @@ export type MultipleInputProp = {
   onSelected?: (selected: Choice[]) => void;
   onSearchChanges?: (search: string) => void;
   max?: number;
+  value?: Choice[];
 };
 
-export default function MultipleInput({ choices, onSelected, onSearchChanges, max }: MultipleInputProp) {
+export default function MultipleInput({ choices, onSelected, onSearchChanges, max, value }: MultipleInputProp) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedItems, setSelectedItems] = useState<Choice[]>([]);
+  const [selectedItems, setSelectedItems] = useState<Choice[]>(value || []);
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (value) {
+      setSelectedItems(value);
+    }
+  }, [value]);
 
   const normalizedChoices = useMemo(() => {
     if (!choices) return [];
@@ -86,7 +93,7 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges, ma
       onSearchChanges('');
     }
     setFocusedIndex(-1);
-    
+
     if (max !== undefined && updated.length >= max) {
       setIsOpen(false);
     } else {
@@ -158,7 +165,11 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges, ma
             ref={inputRef}
             type="text"
             className="form-control custom-input border-start-0 ps-2 py-2 text-stone-800"
-            placeholder={max !== undefined && selectedItems.length >= max ? `Maximum de ${max} sélectionné(s)` : "Rechercher des options..."}
+            placeholder={
+              max !== undefined && selectedItems.length >= max
+                ? `Maximum de ${max} sélectionné(s)`
+                : 'Rechercher des options...'
+            }
             value={searchTerm}
             onChange={handleSearchChange}
             onFocus={() => {
@@ -267,4 +278,3 @@ export default function MultipleInput({ choices, onSelected, onSearchChanges, ma
     </div>
   );
 }
-
