@@ -54,7 +54,7 @@ export default function CourtCreatePage() {
         <div className="d-flex justify-content-between align-items-center mb-4">
           <button
             type="button"
-            onClick={() => navigate('/courts')}
+            onClick={() => navigate('/courts/manage')}
             className="btn btn-outline-secondary d-flex align-items-center gap-2 hover-bg-stone-50 transition"
           >
             <ArrowLeft /> Retour aux terrains
@@ -70,9 +70,7 @@ export default function CourtCreatePage() {
 
         <div className="card shadow-sm border-0 bg-white rounded-3 overflow-hidden">
           <div className="card-body p-4 p-md-5">
-            <h5 className="card-title mb-4 border-bottom pb-3 fw-semibold text-stone-800">
-              Détails du terrain
-            </h5>
+            <h5 className="card-title mb-4 border-bottom pb-3 fw-semibold text-stone-800">Détails du terrain</h5>
 
             <form onSubmit={handleSubmit(onSubmit)} className="d-flex flex-column gap-4">
               <div>

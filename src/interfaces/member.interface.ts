@@ -1,3 +1,11 @@
+export interface Category {
+  id: number;
+  name: string;
+  min_age: number | null;
+  max_age: number | null;
+  gender: string | null;
+}
+
 export interface Member {
   id: number;
   firstname: string;
@@ -15,6 +23,7 @@ export interface Member {
   is_active: boolean;
   role: string;
   contribution_paid: boolean;
+  categories?: string[];
   created_at: string;
 }
 
@@ -38,7 +47,9 @@ export interface MemberListQueryParams {
   postal_code?: string;
   ranking?: string;
   search?: string;
+  category?: string;
 }
+
 
 export interface MemberCreateData {
   firstname: string;

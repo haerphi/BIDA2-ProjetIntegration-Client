@@ -1,4 +1,4 @@
-import type { Court, CourtCreateData, Reservation } from '../interfaces/court.interface';
+import type { BookReservation, Court, CourtCreateData, Reservation } from '../interfaces/court.interface';
 import apiClient from './api-client';
 import { store } from '../store/store';
 import { setCourts } from '../store/slices/court.slice';
@@ -36,18 +36,8 @@ export const courtService = {
     return response.data;
   },
 
-  book: async (
-    courtId: number,
-    data: {
-      type: string;
-      members: number[];
-      date_time: string;
-      duration: number;
-      comment?: string;
-    },
-  ): Promise<any> => {
-    const response = await apiClient.post<any>(`/courts/${courtId}/reservations/`, data);
-    return response.data;
+  book: async (courtId: number, data: BookReservation): Promise<void> => {
+    await apiClient.post<any>(`/courts/${courtId}/reservations/`, data);
   },
 
   checkEligibility: async (
@@ -70,5 +60,19 @@ export const courtService = {
       },
     });
     return response.data;
+  },
+
+  cancelReservation: async (courtId: number, reservationId: number): Promise<void> => {
+    await apiClient.delete(`/courts/${courtId}/reservations/${reservationId}/`);
+  },
+
+  delete: async (courtId: number): Promise<void> => {
+    await apiClient.delete(`/courts/${courtId}/`);
+    try {
+      const courtsResponse = await apiClient.get<Court[]>('/courts/all/');
+      store.dispatch(setCourts(courtsResponse.data));
+    } catch (err) {
+      console.error('Failed to refresh court list in store after deletion', err);
+    }
   },
 };

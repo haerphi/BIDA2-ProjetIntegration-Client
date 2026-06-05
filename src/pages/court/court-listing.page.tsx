@@ -233,6 +233,17 @@ export default function CourtListingPage() {
             courts={tablPlanningCourt}
             selectedDate={selectedDate}
             canBook={showCheckEligibility || isAdmin}
+            onReservationCancelled={(reservationId) => {
+              // Remove the cancelled reservation from all courts in the local state
+              setTablPlanningCourt((prev) =>
+                prev.map((court) => ({
+                  ...court,
+                  reservations: court.reservations.filter((r) => r.id !== reservationId),
+                })),
+              );
+              // Also remove from weekly reservations widget
+              setMyWeeklyReservations((prev) => prev.filter((r) => r.id !== reservationId));
+            }}
           />
         )}
       </div>

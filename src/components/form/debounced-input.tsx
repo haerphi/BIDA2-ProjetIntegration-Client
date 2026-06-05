@@ -8,6 +8,7 @@ interface DebouncedInputProps {
   placeholder?: string;
   className?: string;
   type: 'text' | 'number';
+  style?: React.CSSProperties;
 }
 
 export default function DebouncedInput({
@@ -18,6 +19,7 @@ export default function DebouncedInput({
   placeholder,
   className,
   type = 'text',
+  style,
 }: DebouncedInputProps) {
   const [value, setValue] = useState(initialValue);
 
@@ -40,6 +42,7 @@ export default function DebouncedInput({
       id={id}
       type={type}
       className={className}
+      style={style}
       placeholder={placeholder}
       value={value}
       onChange={(e) => setValue(e.target.value)}

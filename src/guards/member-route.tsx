@@ -4,11 +4,16 @@ import { selectIsAdmin, selectIsMember } from '../store/slices/auth.slice';
 
 const MemberRoute = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const isFirstLogin = useAppSelector((state) => state.auth.tokenPayload?.is_first_login);
   const isMember = useAppSelector(selectIsMember);
   const isAdmin = useAppSelector(selectIsAdmin);
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (isFirstLogin) {
+    return <Navigate to="/first-login" replace />;
   }
 
   if (!isMember && !isAdmin) {

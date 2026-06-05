@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Member, MemberListQueryParams } from '../../interfaces/member.interface';
+import type { Member, MemberListQueryParams, Category } from '../../interfaces/member.interface';
 import { memberService } from '../../api/member.service';
 import { DataTable } from '../../components/common/data-table';
 import type { ColumnDef, FilterFieldDef } from '../../components/common/data-table';
@@ -7,6 +7,7 @@ import { PaymentBadge } from './components/payment-badge';
 import { Link } from 'react-router-dom';
 import CustomIcon from '../../components/common/Icons/custom-icon';
 import Header from '../../layout/header';
+import { MemberRanking } from '../../enums/member-ranking.enum';
 
 const columns: ColumnDef<Member>[] = [
   {
@@ -29,6 +30,31 @@ const columns: ColumnDef<Member>[] = [
     render: (m) => <span className="text-stone-600">{m.email}</span>,
   },
   {
+    key: 'categories',
+    header: 'Catégories',
+    render: (m) => (
+      <div className="d-flex flex-wrap gap-1">
+        {m.categories && m.categories.length > 0 ? (
+          m.categories.map((cat) => (
+            <span
+              key={cat}
+              className="badge bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-pill px-2 py-1 small"
+            >
+              {cat}
+            </span>
+          ))
+        ) : (
+          <span className="text-stone-400 small">-</span>
+        )}
+      </div>
+    ),
+  },
+  {
+    key: 'ranking',
+    header: 'Classement',
+    render: (m) => <span className="text-stone-600">{m.ranking}</span>,
+  },
+  {
     key: 'actions',
     header: 'Actions',
     className: 'text-center',
@@ -44,31 +70,9 @@ const columns: ColumnDef<Member>[] = [
   },
 ];
 
-const filterFields: FilterFieldDef[] = [
-  {
-    key: 'search',
-    label: 'Recherche par nom, prénom, Email',
-    type: 'text',
-    placeholder: 'Ex: Dupont ou toto@mail.com',
-    minWidth: '200px',
-  },
-  {
-    key: 'ranking',
-    label: 'Classement',
-    type: 'select',
-    minWidth: '200px',
-    options: [
-      { value: '', label: 'Tous' },
-      { value: 'A', label: 'A' },
-      { value: 'B', label: 'Série B' },
-      { value: 'C', label: 'Série C' },
-      { value: 'NC', label: 'N.C' },
-    ],
-  },
-];
-
 export default function MemberListPage() {
   const [members, setMembers] = useState<Member[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,7 +89,54 @@ export default function MemberListPage() {
     postal_code: '',
     ranking: '',
     search: '',
+    category: '',
   });
+
+  useEffect(() => {
+    memberService
+      .getCategories()
+      .then((cats) => setCategories(cats))
+      .catch((err) => console.error('Failed to load categories', err));
+  }, []);
+
+  const filterFields = useMemo<FilterFieldDef[]>(
+    () => [
+      {
+        key: 'search',
+        label: 'Recherche par nom, prénom, Email',
+        type: 'text',
+        placeholder: 'Ex: Dupont ou toto@mail.com',
+        minWidth: '200px',
+      },
+      {
+        key: 'category',
+        label: 'Catégorie',
+        type: 'select',
+        minWidth: '200px',
+        options: [
+          { value: '', label: 'Toutes' },
+          ...categories.map((c) => ({ value: c.id.toString(), label: c.name })),
+        ],
+      },
+      {
+        key: 'ranking',
+        label: 'Classement',
+        type: 'select',
+        minWidth: '200px',
+        options: [
+          {
+            value: '',
+            label: 'Tous',
+          },
+          ...Object.values(MemberRanking).map((ranking) => ({
+            value: ranking,
+            label: ranking,
+          })),
+        ],
+      },
+    ],
+    [categories],
+  );
 
   useEffect(() => {
     let cancelled = false;

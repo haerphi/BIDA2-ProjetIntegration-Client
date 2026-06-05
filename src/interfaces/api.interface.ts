@@ -6,6 +6,7 @@ export interface Token extends JwtPayload {
   user_id: string;
   affiliation_number: string;
   contribution_paid: boolean;
+  is_first_login: boolean;
   groups: UserGroupEnum[];
   first_name: string;
   last_name: string;

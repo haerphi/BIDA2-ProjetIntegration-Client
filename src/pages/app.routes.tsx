@@ -2,6 +2,7 @@ import { Navigate, type RouteObject } from 'react-router-dom';
 import AuthPage from './auth/auth.page';
 import CourtListingPage from './court/court-listing.page';
 import CourtCreatePage from './court/court-create.page';
+import CourtAdminListPage from './court/court-admin-list.page';
 import CourtReservePage from './court/court-reserve.page';
 import NotFoundPage from './errors/not-found.page';
 import ContributionPayPage from './contribution/contribution-pay.page';
@@ -16,11 +17,16 @@ import DashboardLayout from '../layout/dashboard-layout';
 import ContributionListPage from './contribution/contribution-list.page';
 import MemberCreatePage from './member/member-create.page';
 import MemberProfile from './member/member-profile';
+import FirstLoginPage from './auth/first-login.page';
 
 const appRoutes: Array<RouteObject> = [
   {
     path: '/error/not-found',
     element: <NotFoundPage />,
+  },
+  {
+    path: '/first-login',
+    element: <FirstLoginPage />,
   },
   {
     path: '/',
@@ -106,9 +112,13 @@ const appRoutes: Array<RouteObject> = [
             element: <ContributionListPage />,
           },
           {
+            path: '/courts/manage',
+            element: <CourtAdminListPage />,
+          },
+          {
             path: '/courts/create',
             element: <CourtCreatePage />,
-          }
+          },
         ],
       },
     ],

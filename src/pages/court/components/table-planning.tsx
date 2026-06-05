@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import type { Reservation } from '../../../interfaces/court.interface';
 import { useAppSelector } from '../../../store/hooks';
+import { selectIsAdmin } from '../../../store/slices/auth.slice';
 import ReserveButton from './reserve-button';
+import ReservationDetailModal from './reservation-detail-modal';
 import dayjs, { Dayjs } from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -18,10 +21,10 @@ export type TablePlanningProps = {
   courts: PlanningCourt[];
   selectedDate: Dayjs;
   canBook: boolean;
+  onReservationCancelled?: (reservationId: number) => void;
 };
 
 const TIME_SLOTS = [
-  { label: '08h00', hour: 8 },
   { label: '09h00', hour: 9 },
   { label: '10h00', hour: 10 },
   { label: '11h00', hour: 11 },
@@ -48,138 +51,174 @@ const getReservationForSlot = (reservations: Reservation[] | undefined, checkDat
   });
 };
 
-export default function TablePlanning({ courts, selectedDate, canBook }: TablePlanningProps) {
+export default function TablePlanning({ courts, selectedDate, canBook, onReservationCancelled }: TablePlanningProps) {
   const currentUserId = useAppSelector((state) => state.auth.tokenPayload?.user_id);
+  const isAdmin = useAppSelector(selectIsAdmin);
+
+  const [modalReservation, setModalReservation] = useState<{ reservation: Reservation; courtName: string } | null>(
+    null,
+  );
+
+  const handleReservationClick = (reservation: Reservation, courtName: string) => {
+    setModalReservation({ reservation, courtName });
+  };
+
+  const handleModalClose = () => {
+    setModalReservation(null);
+  };
+
+  const handleCancelled = (reservationId: number) => {
+    setModalReservation(null);
+    onReservationCancelled?.(reservationId);
+  };
 
   return (
-    <div className="table-responsive">
-      <table className="table table-bordered mb-0 text-center align-middle" style={{ fontSize: '0.875rem' }}>
-        <thead className="bg-stone-50 border-stone-200 text-stone-700">
-          <tr>
-            <th className="py-3 bg-stone-50 border-stone-200 fw-medium" style={{ width: '100px' }}>
-              Heure
-            </th>
-            {courts.map((court) => (
-              <th key={court.id} className="py-3 bg-stone-50 border-stone-200 fw-medium">
-                {court.name}
+    <>
+      <div className="table-responsive">
+        <table className="table table-bordered mb-0 text-center align-middle" style={{ fontSize: '0.875rem' }}>
+          <thead className="bg-stone-50 border-stone-200 text-stone-700">
+            <tr>
+              <th className="py-3 bg-stone-50 border-stone-200 fw-medium" style={{ width: '100px' }}>
+                Heure
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="border-stone-100">
-          {TIME_SLOTS.map((slot) => (
-            <tr key={slot.label}>
-              <td className="bg-stone-50 border-stone-200 fw-medium text-stone-600 py-3">{slot.label}</td>
-              {courts.map((court) => {
-                if (court.loading) {
-                  return (
-                    <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
-                      <div className="d-flex align-items-center justify-content-center h-100">
-                        <Spinner size="sm" />
-                      </div>
-                    </td>
-                  );
-                }
-
-                const res = getReservationForSlot(court.reservations, dayjs(selectedDate).hour(slot.hour));
-                if (res) {
-                  const isMyRes = String(res.creator?.id) === String(currentUserId);
-                  const isStartHour = dayjs(res.date_time).hour() === slot.hour;
-
-                  if (res.type === 'blocage_admin') {
-                    return (
-                      <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
-                        <div
-                          className="bg-rose-50 border border-rose-200 text-rose-700 rounded h-100 p-2 text-start lh-sm shadow-sm"
-                          style={{ fontSize: '11px' }}
-                        >
-                          {isStartHour ? (
-                            <>
-                              <strong className="d-block mb-1 text-rose-800 fw-bold">Blocage Admin</strong>
-                              <span className="text-rose-600 font-medium">{res.comment || 'Indisponible'}</span>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-rose-600 font-medium">{res.comment || 'Indisponible'}</span>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  }
-
-                  if (isMyRes) {
-                    return (
-                      <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
-                        <div
-                          className="bg-primary text-white rounded h-100 p-2 text-start lh-sm shadow-sm"
-                          style={{ fontSize: '11px' }}
-                        >
-                          {isStartHour ? (
-                            <>
-                              <strong className="d-block mb-1">Ma réservation</strong>
-                              <span className="opacity-90">Par vous ({res.duration} min)</span>
-                            </>
-                          ) : (
-                            <span className="opacity-90">Occupé (Ma rés.)</span>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  } else {
-                    return (
-                      <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
-                        <div
-                          className="bg-stone-100 border border-stone-200 text-stone-500 rounded h-100 p-2 text-start lh-sm"
-                          style={{ fontSize: '11px' }}
-                        >
-                          {isStartHour ? (
-                            <>
-                              <strong className="d-block mb-1 text-stone-700">Réservé</strong>
-                              <span className="text-stone-500">
-                                {res.creator ? `${res.creator.firstname} ${res.creator.lastname}` : 'Membre'}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-stone-400">Occupé</span>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  }
-                }
-
-                const today = dayjs();
-                const isToday = selectedDate.isSame(today, 'day');
-                const isPastHour = isToday && slot.hour <= today.hour();
-                const isPastDate = selectedDate.isBefore(today, 'day');
-
-                if (court.loading) {
-                  return null;
-                }
-
-                if (isPastDate || (isToday && isPastHour)) {
-                  return (
-                    <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
-                      <span className="text-stone-400">Passé</span>
-                    </td>
-                  );
-                }
-
-                if (!canBook) {
-                  return <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}></td>;
-                }
-
-                return (
-                  <td key={court.id} className="p-1 border-stone-200 planning-slot" style={{ height: '72px' }}>
-                    <ReserveButton courtId={court.id} selectedDate={selectedDate} hour={slot.hour} />
-                  </td>
-                );
-              })}
+              {courts.map((court) => (
+                <th key={court.id} className="py-3 bg-stone-50 border-stone-200 fw-medium">
+                  {court.name}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="border-stone-100">
+            {TIME_SLOTS.map((slot) => (
+              <tr key={slot.label}>
+                <td className="bg-stone-50 border-stone-200 fw-medium text-stone-600 py-3">{slot.label}</td>
+                {courts.map((court) => {
+                  if (court.loading) {
+                    return (
+                      <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
+                        <div className="d-flex align-items-center justify-content-center h-100">
+                          <Spinner size="sm" />
+                        </div>
+                      </td>
+                    );
+                  }
+
+                  const res = getReservationForSlot(court.reservations, dayjs(selectedDate).hour(slot.hour));
+                  if (res) {
+                    const isMyRes = String(res.creator?.id) === String(currentUserId);
+                    const isStartHour = dayjs(res.date_time).hour() === slot.hour;
+
+                    if (res.type === 'blocage_admin') {
+                      return (
+                        <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
+                          <div
+                            className="bg-rose-50 border border-rose-200 text-rose-700 rounded h-100 p-2 text-start lh-sm shadow-sm"
+                            style={{ fontSize: '11px', cursor: isAdmin ? 'pointer' : 'default' }}
+                            onClick={isAdmin ? () => handleReservationClick(res, court.name) : undefined}
+                            title={isAdmin ? 'Voir les détails' : undefined}
+                          >
+                            {isStartHour ? (
+                              <>
+                                <strong className="d-block mb-1 text-rose-800 fw-bold">Blocage Admin</strong>
+                                <span className="text-rose-600 font-medium">{res.comment || 'Indisponible'}</span>
+                              </>
+                            ) : (
+                              <span className="text-rose-600 font-medium">{res.comment || 'Indisponible'}</span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    }
+
+                    if (isMyRes) {
+                      return (
+                        <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
+                          <div
+                            className="bg-primary text-white rounded h-100 p-2 text-start lh-sm shadow-sm"
+                            style={{ fontSize: '11px', cursor: 'pointer' }}
+                            onClick={() => handleReservationClick(res, court.name)}
+                            title="Voir les détails / Annuler"
+                          >
+                            {isStartHour ? (
+                              <>
+                                <strong className="d-block mb-1">Ma réservation</strong>
+                                <span className="opacity-90">Par vous ({res.duration} min)</span>
+                              </>
+                            ) : (
+                              <span className="opacity-90">Occupé (Ma rés.)</span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    } else {
+                      return (
+                        <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
+                          <div
+                            className="bg-stone-100 border border-stone-200 text-stone-500 rounded h-100 p-2 text-start lh-sm"
+                            style={{ fontSize: '11px', cursor: isAdmin ? 'pointer' : 'default' }}
+                            onClick={isAdmin ? () => handleReservationClick(res, court.name) : undefined}
+                            title={isAdmin ? 'Voir les détails' : undefined}
+                          >
+                            {isStartHour ? (
+                              <>
+                                <strong className="d-block mb-1 text-stone-700">Réservé</strong>
+                                <span className="text-stone-500">
+                                  {res.creator ? `${res.creator.firstname} ${res.creator.lastname}` : 'Membre'}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-stone-400">Occupé</span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    }
+                  }
+
+                  const today = dayjs();
+                  const isToday = selectedDate.isSame(today, 'day');
+                  const isPastHour = isToday && slot.hour <= today.hour();
+                  const isPastDate = selectedDate.isBefore(today, 'day');
+
+                  if (court.loading) {
+                    return null;
+                  }
+
+                  if (isPastDate || (isToday && isPastHour)) {
+                    return (
+                      <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}>
+                        <span className="text-stone-400">Passé</span>
+                      </td>
+                    );
+                  }
+
+                  if (!canBook) {
+                    return <td key={court.id} className="p-1 border-stone-200" style={{ height: '72px' }}></td>;
+                  }
+
+                  return (
+                    <td key={court.id} className="p-1 border-stone-200 planning-slot" style={{ height: '72px' }}>
+                      <ReserveButton courtId={court.id} selectedDate={selectedDate} hour={slot.hour} />
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Reservation detail modal */}
+      {modalReservation && (
+        <ReservationDetailModal
+          reservation={modalReservation.reservation}
+          courtName={modalReservation.courtName}
+          currentUserId={currentUserId}
+          isAdmin={isAdmin}
+          onClose={handleModalClose}
+          onCancelled={handleCancelled}
+        />
+      )}
+    </>
   );
 }

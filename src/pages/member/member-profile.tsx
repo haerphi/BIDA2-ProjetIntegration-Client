@@ -8,9 +8,10 @@ import { contributionService } from '../../api/contribution.service';
 import type { Member, MemberUpdateData } from '../../interfaces/member.interface';
 import type { ContributionList } from '../../interfaces/contribution.interface';
 import { useAppSelector } from '../../store/hooks';
-import { selectIsAdmin } from '../../store/slices/auth.slice';
+import { selectIsAdmin, selectMemberId } from '../../store/slices/auth.slice';
 import type { MemberContributionListQueryParams } from '../../interfaces/contribution.interface';
 import { ContributionStatus } from '../../enums/contribution.enum';
+import { MemberRanking } from '../../enums/member-ranking.enum';
 import {
   Person,
   Envelope,
@@ -27,9 +28,13 @@ import {
   ArrowLeft,
   GenderAmbiguous,
   ShieldLock,
+  PersonDash,
+  PersonCheck,
+  Trash3,
 } from 'react-bootstrap-icons';
 import CustomIcon from '../../components/common/Icons/custom-icon';
 import DebouncedInput from '../../components/form/debounced-input';
+import ConfirmModal from '../../components/common/confirm-modal';
 
 const memberSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
@@ -50,6 +55,18 @@ const memberSchema = z.object({
 
 type MemberFormValues = z.infer<typeof memberSchema>;
 
+const passwordSchema = z
+  .object({
+    password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+    confirmPassword: z.string().min(1, 'La confirmation du mot de passe est requise'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  });
+
+type PasswordFormValues = z.infer<typeof passwordSchema>;
+
 export default function MemberProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -63,6 +80,16 @@ export default function MemberProfile() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const currentUserId = useAppSelector(selectMemberId);
+  const isMe = targetId === 'me' || String(targetId) === String(currentUserId);
+
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
+  const [deactivateModal, setDeactivateModal] = useState({ isOpen: false, isLoading: false });
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, isLoading: false });
 
   // Contributions pagination and filters
   const [contribParams, setContribParams] = useState<MemberContributionListQueryParams>({
@@ -83,6 +110,30 @@ export default function MemberProfile() {
   } = useForm<MemberFormValues>({
     resolver: zodResolver(memberSchema),
   });
+
+  const {
+    register: registerPassword,
+    handleSubmit: handlePasswordSubmit,
+    reset: resetPassword,
+    formState: { errors: passwordErrors },
+  } = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+  });
+
+  const onPasswordSubmit = async (data: PasswordFormValues) => {
+    setPasswordSubmitting(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+    try {
+      await memberService.setPassword(targetId, data.password);
+      setPasswordSuccess('Le mot de passe a été modifié avec succès.');
+      resetPassword();
+    } catch (err: any) {
+      setPasswordError(err.response?.data?.detail || 'Erreur lors de la modification du mot de passe.');
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -168,6 +219,28 @@ export default function MemberProfile() {
     }));
   };
 
+  const handleDeactivateConfirm = async () => {
+    if (!member) return;
+    setDeactivateModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await memberService.update(targetId, { is_active: !member.is_active });
+      setMember((prev) => (prev ? { ...prev, is_active: !prev.is_active } : prev));
+      setDeactivateModal({ isOpen: false, isLoading: false });
+    } catch {
+      setDeactivateModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleteModal((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await memberService.delete(targetId);
+      navigate('/members');
+    } catch {
+      setDeleteModal((prev) => ({ ...prev, isLoading: false }));
+    }
+  };
+
   const onSubmit = async (data: MemberFormValues) => {
     setSubmitting(true);
     setError(null);
@@ -215,11 +288,33 @@ export default function MemberProfile() {
     <>
       <header className="bg-white border-bottom border-stone-200 px-4 py-3 sticky-top z-3">
         <div className="d-flex justify-content-between align-items-center">
-          <h2 className="h4 mb-0 fw-semibold text-stone-800 d-flex align-items-center">
-            <CustomIcon iconName="Person" className="w-50 h-50 me-2 text-primary" />
-            Profil de {member?.firstname} {member?.lastname}
-          </h2>
-          <div className="d-flex gap-2">
+          <div className="d-flex align-items-center gap-3">
+            <h2 className="h4 mb-0 fw-semibold text-stone-800 d-flex align-items-center">
+              <CustomIcon iconName="Person" className="w-50 h-50 me-2 text-primary" />
+              Profil de {member?.firstname} {member?.lastname}
+            </h2>
+            {isAdmin && id && (
+              <button
+                className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                onClick={() => setDeleteModal({ isOpen: true, isLoading: false })}
+                title="Supprimer définitivement ce membre"
+              >
+                <Trash3 /> Supprimer le compte
+              </button>
+            )}
+          </div>
+          <div className="d-flex gap-2 flex-wrap">
+            {isAdmin && id && (
+              <>
+                <button
+                  className={`btn d-flex align-items-center gap-2 ${member?.is_active ? 'btn-outline-warning' : 'btn-outline-secondary'}`}
+                  onClick={() => setDeactivateModal({ isOpen: true, isLoading: false })}
+                >
+                  {member?.is_active ? <PersonDash /> : <PersonCheck />}
+                  {member?.is_active ? 'Désactiver' : 'Réactiver'}
+                </button>
+              </>
+            )}
             {!isEditing ? (
               <button className="btn btn-primary d-flex align-items-center gap-2" onClick={() => setIsEditing(true)}>
                 <PencilSquare /> Modifier
@@ -405,11 +500,18 @@ export default function MemberProfile() {
                       <label className="form-label text-muted small fw-bold text-uppercase d-flex align-items-center">
                         <Award className="me-2" /> Classement
                       </label>
-                      <input
+                      <select
                         {...register('ranking')}
                         disabled={!isEditing}
-                        className={`form-control ${errors.ranking ? 'is-invalid' : ''} ${!isEditing ? 'border-0 bg-light' : ''}`}
-                      />
+                        className={`form-select ${errors.ranking ? 'is-invalid' : ''} ${!isEditing ? 'border-0 bg-light' : ''}`}
+                      >
+                        <option value="">Sélectionner un classement</option>
+                        {Object.values(MemberRanking).map((rank) => (
+                          <option key={rank} value={rank}>
+                            {rank}
+                          </option>
+                        ))}
+                      </select>
                       <div className="invalid-feedback">{errors.ranking?.message}</div>
                     </div>
 
@@ -480,6 +582,62 @@ export default function MemberProfile() {
                 </div>
               )}
             </form>
+
+            {(isMe || isAdmin) && (
+              <div className="card border-0 shadow-sm mb-4">
+                <div className="card-header bg-white border-bottom py-3">
+                  <h5 className="mb-0 fw-bold d-flex align-items-center">
+                    <ShieldLock className="me-2 text-warning" /> Modifier le mot de passe
+                  </h5>
+                </div>
+                <div className="card-body p-4">
+                  <form onSubmit={handlePasswordSubmit(onPasswordSubmit)}>
+                    {passwordSuccess && <div className="alert alert-success mb-3">{passwordSuccess}</div>}
+                    {passwordError && <div className="alert alert-danger mb-3">{passwordError}</div>}
+                    <div className="row g-4">
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small fw-bold text-uppercase">
+                          Nouveau mot de passe
+                        </label>
+                        <input
+                          type="password"
+                          {...registerPassword('password')}
+                          className={`form-control ${passwordErrors.password ? 'is-invalid' : ''}`}
+                          placeholder="••••••••"
+                        />
+                        <div className="invalid-feedback">{passwordErrors.password?.message}</div>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label text-muted small fw-bold text-uppercase">
+                          Confirmer le mot de passe
+                        </label>
+                        <input
+                          type="password"
+                          {...registerPassword('confirmPassword')}
+                          className={`form-control ${passwordErrors.confirmPassword ? 'is-invalid' : ''}`}
+                          placeholder="••••••••"
+                        />
+                        <div className="invalid-feedback">{passwordErrors.confirmPassword?.message}</div>
+                      </div>
+                    </div>
+                    <div className="d-flex justify-content-end mt-4">
+                      <button
+                        type="submit"
+                        disabled={passwordSubmitting}
+                        className="btn btn-warning text-white fw-bold d-flex align-items-center gap-2"
+                      >
+                        {passwordSubmitting ? (
+                          <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        ) : (
+                          <ShieldLock />
+                        )}
+                        Mettre à jour le mot de passe
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="col-lg-4">
@@ -530,11 +688,14 @@ export default function MemberProfile() {
                       onChange={(value) => handleContribParamChange('year', Number(value))}
                       debounceMs={300}
                       type="number"
-                      className="form-control form-control-sm border-stone-200"
+                      className="form-control border-stone-200 "
                       placeholder="Année"
+                      style={{
+                        width: '100px',
+                      }}
                     />
                     <select
-                      className="form-select form-select-sm border-stone-200"
+                      className="form-select border-stone-200"
                       style={{ width: 'auto' }}
                       value={contribParams.status || ''}
                       onChange={(e) => handleContribParamChange('status', e.target.value || undefined)}
@@ -636,6 +797,57 @@ export default function MemberProfile() {
           </div>
         </div>
       </div>
+
+      {/* Modal désactiver / réactiver */}
+      <ConfirmModal
+        isOpen={deactivateModal.isOpen}
+        title={member?.is_active ? 'Désactiver le membre' : 'Réactiver le membre'}
+        message={
+          member?.is_active ? (
+            <>
+              Voulez-vous désactiver le compte de{' '}
+              <strong>
+                {member?.firstname} {member?.lastname}
+              </strong>{' '}
+              ? Le membre ne pourra plus se connecter.
+            </>
+          ) : (
+            <>
+              Voulez-vous réactiver le compte de{' '}
+              <strong>
+                {member?.firstname} {member?.lastname}
+              </strong>{' '}
+              ?
+            </>
+          )
+        }
+        confirmLabel={member?.is_active ? 'Désactiver' : 'Réactiver'}
+        confirmVariant={member?.is_active ? 'warning' : 'success'}
+        onConfirm={handleDeactivateConfirm}
+        onCancel={() => setDeactivateModal({ isOpen: false, isLoading: false })}
+        isLoading={deactivateModal.isLoading}
+      />
+
+      {/* Modal suppression définitive */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        title="Supprimer définitivement le membre"
+        message={
+          <>
+            Êtes-vous sûr de vouloir supprimer définitivement{' '}
+            <strong>
+              {member?.firstname} {member?.lastname}
+            </strong>{' '}
+            ?<br />
+            <span className="text-danger fw-semibold">Cette action est irréversible.</span>
+          </>
+        }
+        confirmLabel="Supprimer définitivement"
+        confirmVariant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteModal({ isOpen: false, isLoading: false })}
+        isLoading={deleteModal.isLoading}
+      />
     </>
   );
 }

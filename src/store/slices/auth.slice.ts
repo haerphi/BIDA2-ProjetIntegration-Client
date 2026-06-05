@@ -57,4 +57,7 @@ export const selectGroups = (state: RootState) => state.auth.tokenPayload?.group
 
 export const selectMemberId = (state: RootState) => state.auth.tokenPayload?.user_id ?? null;
 
+export const selectFullName = (state: RootState) =>
+  `${state.auth.tokenPayload?.first_name} ${state.auth.tokenPayload?.last_name}`;
+
 export default authSlice.reducer;

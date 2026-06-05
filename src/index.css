@@ -2,9 +2,12 @@
 :root {
   --emerald-900: #064e3b;
   --emerald-800: #065f46;
+  --emerald-700: #047857;
   --emerald-600: #059669;
   --emerald-500: #10b981;
   --emerald-400: #34d399;
+  --emerald-200: #a7f3d0;
+  --emerald-50: #ecfdf5;
   --stone-50: #fafaf9;
   --stone-100: #f5f5f4;
   --stone-200: #e7e5e4;
@@ -45,6 +48,9 @@ body {
 .bg-emerald-400 {
   background-color: var(--emerald-400) !important;
 }
+.bg-emerald-50 {
+  background-color: var(--emerald-50) !important;
+}
 .bg-stone-50 {
   background-color: var(--stone-50) !important;
 }
@@ -60,6 +66,9 @@ body {
 }
 .text-emerald-800 {
   color: var(--emerald-800) !important;
+}
+.text-emerald-700 {
+  color: var(--emerald-700) !important;
 }
 .text-emerald-600 {
   color: var(--emerald-600) !important;
@@ -97,6 +106,9 @@ body {
 }
 .border-emerald-500 {
   border-color: var(--emerald-500) !important;
+}
+.border-emerald-200 {
+  border-color: var(--emerald-200) !important;
 }
 .border-emerald-800 {
   border-color: var(--emerald-800) !important;

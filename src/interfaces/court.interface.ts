@@ -16,6 +16,16 @@ export interface Reservation {
   date_time: string;
   duration: number;
   creator: Member;
+  players: Member[];
   type: BookingType;
+  comment?: string;
+}
+
+export interface BookReservation {
+  type: string;
+  creator?: number;
+  members: number[];
+  date_time: string;
+  duration: number;
   comment?: string;
 }

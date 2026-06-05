@@ -7,6 +7,7 @@ import type { MemberCreateData } from '../../interfaces/member.interface';
 import { useState } from 'react';
 import { ArrowLeft, Save } from 'react-bootstrap-icons';
 import Header from '../../layout/header';
+import { MemberRanking } from '../../enums/member-ranking.enum';
 
 const memberSchema = z.object({
   firstname: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères'),
@@ -236,11 +237,17 @@ export default function MemberCreatePage() {
 
                   <div className="col-12">
                     <label className="form-label fw-medium">Classement / Ranking</label>
-                    <input
+                    <select
                       {...register('ranking')}
-                      className={`form-control ${errors.ranking ? 'is-invalid' : ''}`}
-                      placeholder="15/1"
-                    />
+                      className={`form-select ${errors.ranking ? 'is-invalid' : ''}`}
+                    >
+                      <option value="">Sélectionner un classement</option>
+                      {Object.values(MemberRanking).map((rank) => (
+                        <option key={rank} value={rank}>
+                          {rank}
+                        </option>
+                      ))}
+                    </select>
                     <div className="invalid-feedback">{errors.ranking?.message}</div>
                   </div>
 

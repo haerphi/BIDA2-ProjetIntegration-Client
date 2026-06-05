@@ -9,9 +9,9 @@ import Header from '../../layout/header';
 import { courtService } from '../../api/court.service';
 import { memberService } from '../../api/member.service';
 import { useAppSelector } from '../../store/hooks';
-import { selectIsAdmin } from '../../store/slices/auth.slice';
+import { selectFullName, selectIsAdmin, selectMemberId } from '../../store/slices/auth.slice';
 import MultipleInput, { type Choice } from '../../components/form/multiple-input';
-import type { Court } from '../../interfaces/court.interface';
+import type { BookReservation, Court } from '../../interfaces/court.interface';
 import { BookingType } from '../../enums/booking-type.enum';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -20,7 +20,7 @@ dayjs.extend(utc);
 
 const bookingSchema = z.object({
   date: z.string().min(1, 'La date est requise'),
-  hour: z.number().min(8, "L'heure doit être entre 8 et 22").max(22, "L'heure doit être entre 8 et 22"),
+  hour: z.number().min(9, "L'heure doit être entre 9 et 22").max(22, "L'heure doit être entre 9 et 22"),
   type: z.enum(BookingType, {
     error: 'Le type de réservation est requis',
   }),
@@ -34,19 +34,22 @@ const bookingSchema = z.object({
 
 type BookingFormValues = z.infer<typeof bookingSchema>;
 
-// TODO : MANAGE BLOCAGE_ADMIN
-
 export default function CourtReservePage() {
   const { courtId } = useParams<{ courtId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const isAdmin = useAppSelector(selectIsAdmin);
-  const currentUserId = useAppSelector((state) => state.auth.tokenPayload?.user_id);
+  const currentUserId = useAppSelector(selectMemberId);
+  const currentUserFullName = useAppSelector(selectFullName);
 
   const [court, setCourt] = useState<Court | null>(null);
   const [memberChoices, setMemberChoices] = useState<Choice[]>([]);
   const [selectedPartners, setSelectedPartners] = useState<Choice[]>([]);
+  const [selectedCreator, setSelectedCreator] = useState<Choice>({
+    value: currentUserId!,
+    label: currentUserFullName,
+  });
   const [memberSearch, setMemberSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,10 +209,11 @@ export default function CourtReservePage() {
       const duration =
         selectedType === BookingType.BLOCAGE_ADMIN ? data.duration : selectedType === BookingType.SIMPLE ? 60 : 120;
 
-      const bookingPayload = {
+      const bookingPayload: BookReservation = {
         type: data.type,
         duration,
         date_time: date_time.toISOString(),
+        creator: isAdmin && selectedCreator ? selectedCreator.value : undefined,
         members: data.type === BookingType.BLOCAGE_ADMIN ? [] : selectedPartners.map((p) => p.value as number),
         comment: data.type === BookingType.BLOCAGE_ADMIN ? data.comment : undefined,
       };
@@ -227,7 +231,11 @@ export default function CourtReservePage() {
         } else if (serverErrors.date_time) {
           setError(Array.isArray(serverErrors.date_time) ? serverErrors.date_time[0] : serverErrors.date_time);
         } else if (serverErrors.non_field_errors) {
-          setError(Array.isArray(serverErrors.non_field_errors) ? serverErrors.non_field_errors[0] : serverErrors.non_field_errors);
+          setError(
+            Array.isArray(serverErrors.non_field_errors)
+              ? serverErrors.non_field_errors[0]
+              : serverErrors.non_field_errors,
+          );
         } else {
           setError(serverErrors.detail || 'Une erreur est survenue lors de la réservation.');
         }
@@ -302,7 +310,7 @@ export default function CourtReservePage() {
                   <input
                     type="number"
                     className={`form-control custom-input ${errors.hour ? 'is-invalid' : ''}`}
-                    min={8}
+                    min={9}
                     max={22}
                     {...register('hour', { valueAsNumber: true })}
                     disabled={selectedType !== BookingType.BLOCAGE_ADMIN}
@@ -355,6 +363,20 @@ export default function CourtReservePage() {
                     placeholder="Ex: Travaux d'entretien, tournoi interne, court indisponible..."
                     className="form-control py-2 px-3 shadow-sm border-stone-200 focus-emerald"
                     rows={3}
+                  />
+                </div>
+              )}
+
+              {selectedType !== BookingType.BLOCAGE_ADMIN && isAdmin && (
+                <div className="border-top pt-4 mt-2">
+                  <label className="form-label fw-semibold text-stone-800 mb-1">Sélection qui réserve</label>
+
+                  <MultipleInput
+                    choices={memberChoices}
+                    value={selectedCreator ? [selectedCreator] : []}
+                    onSelected={(choices) => setSelectedCreator(choices[0])}
+                    onSearchChanges={setMemberSearch}
+                    max={1}
                   />
                 </div>
               )}

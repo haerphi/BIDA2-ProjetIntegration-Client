@@ -23,7 +23,7 @@ export default function NavBar({ className }: { className?: string }) {
       icon: 'ShieldLockFill',
       roles: [UserGroup.ADMIN],
       children: [
-        { path: '/courts/create', label: 'Ajouter un terrain', icon: 'PlusCircle' },
+        { path: '/courts/manage', label: 'Terrains', icon: 'GeoAlt' },
         { path: '/members', label: 'Membres', icon: 'PersonFill' },
         { path: '/contributions', label: 'Cotisations', icon: 'CurrencyDollar' },
       ],
